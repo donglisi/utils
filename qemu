@@ -1,13 +1,22 @@
 #!/bin/bash
 
+disk="-drive format=raw,file=$1,if=virtio"
+smp=" -smp 2"
+mem=" -m 2g"
 vnc=""
 net=nat
 tap_number=$(comm -3 <(seq -f "%02g" 0 99) <(ip a | grep -Eo "^[0-9]+: tap[0-9]+" | awk '{gsub("tap","", $2); printf "%02d\n", $2}' | sort -V) | head -n 1 | sed -E 's/^0{1}//')
-printf -v mac_addr "52:54:%02x:%02x:%02x:%02x" $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff )) $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff ))
+printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff )) $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff ))
 
 args=("$@")
-for ((i=$(("${#args[@]}" - 1)); i>=0; --i)); do
+for ((i=$(("${#args[@]}" - 1)); i > 0; --i)); do
   case ${args[i]} in
+  -smp)
+    smp=""
+    ;;
+  -m)
+    mem=""
+    ;;
   -mac)
     mac_addr=${args[i+1]}
     unset args[i]
@@ -26,9 +35,10 @@ for ((i=$(("${#args[@]}" - 1)); i>=0; --i)); do
   esac
 done
 
+unset args[0]
 
 qemu-system-x86_64 -enable-kvm \
   -chardev pty,id=c0 -device isa-serial,chardev=c0 \
   -netdev tap,id=tap0,ifname=tap"$tap_number",script=/etc/qemu-ifup-$net,downscript=/etc/qemu-ifdown-$net \
-  -device e1000,netdev=tap0,mac=$mac_addr \
-  $vnc "${args[@]}"
+  -device virtio-net,netdev=tap0,mac=$mac_addr \
+  $disk $smp $mem $vnc "${args[@]}"
