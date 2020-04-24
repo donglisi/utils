@@ -1,6 +1,6 @@
 #!/bin/bash
 
-disk="-drive format=raw,file=$1,if=virtio"
+disk="-drive file=$1,if=virtio"
 smp=" -smp 2"
 mem=" -m 2g"
 vnc=""
@@ -37,8 +37,9 @@ done
 
 unset args[0]
 
-qemu-system-x86_64 -enable-kvm \
+qemu-system-x86_64 -enable-kvm -cpu host \
   -chardev pty,id=c0 -device isa-serial,chardev=c0 \
   -netdev tap,id=tap0,ifname=tap"$tap_number",script=/etc/qemu-ifup-$net,downscript=/etc/qemu-ifdown-$net \
   -device virtio-net,netdev=tap0,mac=$mac_addr \
+  -device virtio-rng-pci \
   $disk $smp $mem $vnc "${args[@]}"
