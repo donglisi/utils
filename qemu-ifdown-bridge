@@ -1,0 +1,15 @@
+#!/bin/sh
+
+BRIDGE=br1
+ETHERNET=eno1
+IP=$(ip a | grep $BRIDGE | grep " inet " | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b/[0-9]+ " | tail -n 1)
+GATEWAY=$(ip route | grep $BRIDGE | grep "default via" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
+
+ip link set $1 nomaster
+
+if [[ -z $(ip a | grep "master $BRIDGE " | grep -v $ETHERNET) ]] ; then
+  ip link set $ETHERNET nomaster
+  ip link del $BRIDGE
+  ip addr add $IP dev $ETHERNET
+  ip route add default via $GATEWAY
+fi
