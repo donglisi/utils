@@ -1,8 +1,8 @@
 #!/bin/bash
 
-disk="-drive file=$1,if=virtio"
-smp=" -smp 2"
-mem=" -m 2g"
+disk=" -drive file=$1,if=virtio "
+smp=" -smp 6"
+mem=" -m 4g"
 vnc=""
 net=nat
 tap_number=$(comm -3 <(seq -f "%02g" 0 99) <(ip a | grep -Eo "^[0-9]+: tap[0-9]+" | awk '{gsub("tap","", $2); printf "%02d\n", $2}' | sort -V) | head -n 1 | sed -E 's/^0{1}//')
@@ -37,9 +37,12 @@ done
 
 unset args[0]
 
+echo mac address : $mac_addr
+
 qemu-system-x86_64 -enable-kvm -cpu host \
   -chardev pty,id=c0 -device isa-serial,chardev=c0 \
-  -netdev tap,id=tap0,ifname=tap"$tap_number",script=/etc/qemu-ifup-$net,downscript=/etc/qemu-ifdown-$net \
+  -netdev tap,id=tap0,ifname=tap$tap_number,script=/etc/qemu-ifup-$net,downscript=/etc/qemu-ifdown-$net \
   -device virtio-net,netdev=tap0,mac=$mac_addr \
   -device virtio-rng-pci \
   $disk $smp $mem $vnc "${args[@]}"
+
