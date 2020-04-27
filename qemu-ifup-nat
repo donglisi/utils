@@ -15,6 +15,7 @@ if ! is_bridge_interface $BRIDGE; then
   
 iptables-restore <<EOF
 *nat
+-A PREROUTING -p udp -i $BRIDGE --dport 53 -j DNAT --to-destination $GATEWAY:5353
 -A POSTROUTING -s $NETWORK/$NETMASK -j MASQUERADE
 COMMIT
 *filter
@@ -24,7 +25,7 @@ COMMIT
 COMMIT
 EOF
 
-  dnsmasq --interface=$BRIDGE --strict-order --except-interface=lo --listen-address=$GATEWAY --bind-interfaces --dhcp-range=$DHCPRANGE --dhcp-no-override
+  dnsmasq --interface=$BRIDGE -p 5353 --strict-order --except-interface=lo --listen-address=$GATEWAY --bind-interfaces --dhcp-range=$DHCPRANGE --dhcp-no-override
 
 fi
 

@@ -5,7 +5,7 @@ BRIDGE=br1
 IP=$(ip -4 addr show $ETHERNET | grep " inet " | awk '{print $2}')
 [[ $(echo $IP) =~ " " ]] && echo There are multiple ip, Unable to process && exit 1
 
-GATEWAY=$(ip route show 0.0.0.0/0 dev $ETHERNET | cut -d\  -f3)
+GATEWAY=$(ip -4 route show 0.0.0.0/0 dev $ETHERNET | cut -d\  -f3)
 [[ $(echo $GATEWAY) =~ " " ]] && echo There are multiple default route, Unable to process && exit 2
 
 if ! is_bridge_interface $BRIDGE; then
