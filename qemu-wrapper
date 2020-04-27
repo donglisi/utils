@@ -1,7 +1,6 @@
 #!/bin/bash
 
 PROGNAME="$(basename $0)"
-
 usage() {
   echo "Usage: "$PROGNAME" <disk path> [options]"
   echo
@@ -18,13 +17,11 @@ usage() {
   echo "  "$PROGNAME" fedora.qcow2 -kernel /mnt/c/linux/arch/x86_64/boot/bzImage -append \"root=/dev/vda1 console=ttyS0\""
 }
 
-if [[ $1 = "-h" ]] || [[ $1 = "-help" ]]; then
+if [[ -z $1 ]] || [[ $1 = "-h" ]] || [[ $1 = "-help" ]]; then
   usage
   exit 0
 fi
-
-[[ -z $1 ]] && echo No disk file, Please run -h to view help && exit 1
-[[ ! -f $1 ]] && echo \<$1\> not is a file, Please run -h to view help && exit 1
+[[ ! -f $1 ]] && echo \<$1\> not is a file && exit 1
 
 disk=" -drive file=$1,if=virtio "
 smp=" -smp 6 "
@@ -68,9 +65,7 @@ for ((i=$(("${#args[@]}" - 1)); i > 0; --i)); do
     ;;
   esac
 done
-
 unset args[0]
-
 echo mac address : $mac_addr
 
 qemu-system-x86_64 -enable-kvm -cpu host \
