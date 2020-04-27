@@ -2,19 +2,21 @@
 
 BRIDGE=br1
 
-IP=$(ip -4 addr show $ETHERNET | grep " inet " | awk '{print $2}')
-[[ $(echo $IP) =~ " " ]] && echo There are multiple ip, Unable to process && exit 1
-
-GATEWAY=$(ip -4 route show 0.0.0.0/0 dev $ETHERNET | cut -d\  -f3)
-[[ $(echo $GATEWAY) =~ " " ]] && echo There are multiple default route, Unable to process && exit 2
-
 if ! is_bridge_interface $BRIDGE; then
+  IP=$(ip -4 addr show $ETHERNET | grep " inet " | awk '{print $2}')
+  GATEWAY=$(ip -4 route list 0/0 dev $ETHERNET | cut -d\  -f3)
+
+  [[ -z "$IP" ]] && echo $ETHERNET No ip && exit 1 
+  [[ $(echo $IP) =~ " " ]] && echo $ETHERNET has multiple ip && exit 2
+  [[ -z "$GATEWAY" ]] && echo $ETHERNET No default route && echo exit 3
+  [[ $(echo $GATEWAY) =~ " " ]] && echo $ETHERNET has multiple default route && exit 4
+
   ip link add $BRIDGE type bridge
-  ip link set $ETHERNET master $BRIDGE
   ip link set $BRIDGE up
+  ip link set $ETHERNET master $BRIDGE
   ip addr del $IP dev $ETHERNET
   ip addr add $IP dev $BRIDGE
-  [[ -n "GATEWAY" ]] && ip route add default via $GATEWAY dev $BRIDGE
+  ip route add default via $GATEWAY dev $BRIDGE
 fi
 
 ip link set $1 master $BRIDGE

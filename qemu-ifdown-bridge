@@ -1,15 +1,16 @@
 #!/bin/sh
 
-BRIDGE=br1
-
-IP=$(ip -4 addr show $BRIDGE | grep " inet " | awk '{print $2}')
-GATEWAY=$(ip -4 route show 0.0.0.0/0 dev $BRIDGE | cut -d\  -f3)
-
 ip link set $1 nomaster
 
+BRIDGE=br1
+
 if [[ -z $(bridge mdb show dev $BRIDGE) ]] ; then
+  IP=$(ip -4 addr show $BRIDGE | grep " inet " | awk '{print $2}')
+  GATEWAY=$(ip -4 route list 0/0 dev $BRIDGE | cut -d\  -f3)
+
   ip link set $ETHERNET nomaster
   ip link del $BRIDGE
-  ip addr add $IP dev $ETHERNET
-  [[ -n "GATEWAY" ]] && ip route add default via $GATEWAY dev $ETHERNET
+
+  [[ -n "$IP" ]] && ip addr add $IP dev $ETHERNET
+  [[ -n "$GATEWAY" ]] && ip route add default via $GATEWAY dev $ETHERNET
 fi

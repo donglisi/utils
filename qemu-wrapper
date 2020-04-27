@@ -29,8 +29,8 @@ fi
 [[ ! -f $1 ]] && echo \<$1\> not is a file && exit 1
 
 disk=" -drive file=$1,if=virtio "
-smp=" -smp 6 "
-mem=" -m 4g "
+smp=" -smp 2 "
+mem=" -m 2g "
 net=nat
 vnc=""
 mac_addr=""
