@@ -1,12 +1,19 @@
 #!/bin/bash
 
 disk=" -drive file=$1,if=virtio "
-smp=" -smp 6"
-mem=" -m 4g"
-vnc=""
+smp=" -smp 6 "
+mem=" -m 4g "
 net=nat
+vnc=""
+mac_addr=""
 tap_number=$(comm -3 <(seq -f "%02g" 0 99) <(ip a | grep -Eo "^[0-9]+: tap[0-9]+" | awk '{gsub("tap","", $2); printf "%02d\n", $2}' | sort -V) | head -n 1 | sed -E 's/^0{1}//')
-printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff )) $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff ))
+
+mac_history=/usr/local/etc/qemu
+[[ -f $mac_history ]] && mac_addr=$(grep "^$1 " $mac_history | awk '{print $2}')
+if [[ -z $mac_addr ]]; then
+  printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff )) $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff ))
+  echo $1 $mac_addr >> /usr/local/etc/qemu
+fi
 
 args=("$@")
 for ((i=$(("${#args[@]}" - 1)); i > 0; --i)); do
