@@ -30,6 +30,7 @@ net=nat
 vnc=""
 mac_addr=""
 tap_number=$(comm -3 <(seq -f "%02g" 0 99) <(ip a | grep -Eo "^[0-9]+: tap[0-9]+" | awk '{gsub("tap","", $2); printf "%02d\n", $2}' | sort -V) | head -n 1 | sed -E 's/^0{1}//')
+export ETHERNET=""
 
 mkdir -p /var/run/qemu-wrapper/
 mac_history=/var/run/qemu-wrapper/mac_address_history
@@ -54,8 +55,10 @@ for ((i=$(("${#args[@]}" - 1)); i > 0; --i)); do
     unset args[i+1]
     ;;
   -br)
+    ETHERNET=${args[i+1]}
     net=bridge
     unset args[i]
+    unset args[i+1]
     ;;
   -vnc)
     if [[ ${args[i+1]} != :* ]]; then

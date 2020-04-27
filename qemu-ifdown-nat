@@ -4,7 +4,7 @@ BRIDGE=br0
 
 ip link set $1 nomaster
 
-if [[ -z $(ip a|grep "master $BRIDGE ") ]] ; then
+if [[ -z $(ip a|grep " master $BRIDGE ") ]] ; then
   ip link del $BRIDGE
   pkill -9 -f "^dnsmasq --interface=$BRIDGE"
 fi

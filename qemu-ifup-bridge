@@ -1,11 +1,14 @@
 #!/bin/sh
 
 BRIDGE=br1
-ETHERNET=eno1
-IP=$(ip a | grep $ETHERNET | grep " inet " | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b/[0-9]+ " | tail -n 1)
-GATEWAY=$(ip route | grep $ETHERNET | grep "default via" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
 
-if [[ -z $(bridge -d link | awk '{print $2}' | grep ^"$BRIDGE":$) ]] ; then
+IP=$(ip a | grep $ETHERNET | grep " inet " | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b/[0-9]+ ")
+[[ $(echo $IP) =~ " " ]] && echo There are multiple ip, Unable to process && exit 1
+
+GATEWAY=$(ip route | grep $ETHERNET | grep "default via" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
+[[ $(echo $GATEWAY) =~ " " ]] && echo There are multiple default route, Unable to process && exit 2
+
+if [[ -z $(ip a | grep -E "^[0-9]+" | awk '{print $2}' | tr -d ':' | grep ^"$BRIDGE"$) ]] ; then
   ip link add $BRIDGE type bridge
   ip link set $ETHERNET master $BRIDGE
   ip link set $BRIDGE up
