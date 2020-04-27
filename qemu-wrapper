@@ -5,17 +5,22 @@ usage() {
   echo "Usage: "$PROGNAME" <disk path> [options]"
   echo
   echo "Options:"
-  echo "  -h or -help     display this help and exit"
-  echo "  -br             Set the network mode to bridge (default is nat)"
-  echo "  -vnc            Enable vnc and assign ports in order"
-  echo "  -mac            Set mac address"
+  echo "  -h or -help                       display this help and exit"
+  echo "  -br <interface_with_internet>     Set the network mode to bridge (default is nat)"
+  echo "  -mac <mac_address>                Set mac address"
+  echo "  -vnc [:qemu_vnc_port]             Enable vnc and assign ports in order"
   echo
   echo "Examples:"
-  echo "  "$PROGNAME" fedora.qcow2"
-  echo "  "$PROGNAME" fedora.qcow2 -vnc :0"
-  echo "  "$PROGNAME" fedora.qcow2 -vnc -br -mac 52:54:91:2c:1e:8d"
-  echo "  "$PROGNAME" fedora.qcow2 -kernel /mnt/c/linux/arch/x86_64/boot/bzImage -append \"root=/dev/vda1 console=ttyS0\""
+  echo "  "$PROGNAME" /path/to/fedora.qcow2 -vnc"
+  echo "  "$PROGNAME" /path/to/fedora.qcow2 -vnc :0 -br eno1 -mac 52:54:91:2c:1e:8d"
+  echo "  "$PROGNAME" /path/to/fedora.qcow2 -kernel /path/to/bzImage -append \"root=/dev/vda1 console=ttyS0\""
 }
+
+is_bridge_interface() {
+    [[ -z "$1" ]] && return 1
+    [[ -d "/sys/class/net/${1}/bridge" ]]
+}
+export -f is_bridge_interface
 
 if [[ -z $1 ]] || [[ $1 = "-h" ]] || [[ $1 = "-help" ]]; then
   usage
