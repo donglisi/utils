@@ -1,10 +1,8 @@
 #!/bin/sh
 
-BRIDGE=br0
-
 ip link set $1 nomaster
 
-if [[ -z $(bridge mdb show dev $BRIDGE) ]] ; then
-  ip link del $BRIDGE
-  pkill -9 -f "^dnsmasq --interface=$BRIDGE"
+if is_bridge_interface $NAT && [[ -z $(ip link show master $NAT) ]] ; then
+  ip link del $NAT
+  pkill -9 -f "^dnsmasq --interface=$NAT "
 fi

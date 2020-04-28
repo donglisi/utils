@@ -1,7 +1,5 @@
 #!/bin/sh
 
-BRIDGE=br1
-
 if ! is_bridge_interface $BRIDGE; then
   IP=$(ip -4 addr show $ETHERNET | grep " inet " | awk '{print $2}')
   GATEWAY=$(ip -4 route list 0/0 dev $ETHERNET | cut -d\  -f3)

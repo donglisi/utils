@@ -1,6 +1,5 @@
 #!/bin/sh
 
-BRIDGE=br0
 NETWORK=192.168.53.0
 NETMASK=255.255.255.0
 GATEWAY=192.168.53.1
@@ -8,26 +7,27 @@ DHCPRANGE=192.168.53.2,192.168.53.254
 
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
-if ! is_bridge_interface $BRIDGE; then
-  ip link add name $BRIDGE type bridge
-  ip addr add $GATEWAY/$NETMASK dev $BRIDGE
-  ip link set $BRIDGE up
+if ! is_bridge_interface $NAT; then
+  ip link add name $NAT type bridge
+  ip addr add $GATEWAY/$NETMASK dev $NAT
+  ip link set $NAT up
   
 iptables-restore <<EOF
 *nat
--A PREROUTING -p udp -i $BRIDGE --dport 53 -j DNAT --to-destination $GATEWAY:5353
+-A PREROUTING -p udp -i $NAT --dport 53 -j DNAT --to-destination $GATEWAY:5353
 -A POSTROUTING -s $NETWORK/$NETMASK -j MASQUERADE
 COMMIT
 *filter
 -A FORWARD -i $1 -o $1 -j ACCEPT 
--A FORWARD -s $NETWORK/$NETMASK -i $BRIDGE -j ACCEPT 
--A FORWARD -d $NETWORK/$NETMASK -o $BRIDGE -m state --state RELATED,ESTABLISHED -j ACCEPT 
+-A FORWARD -s $NETWORK/$NETMASK -i $NAT -j ACCEPT 
+-A FORWARD -d $NETWORK/$NETMASK -o $NAT -m state --state RELATED,ESTABLISHED -j ACCEPT 
 COMMIT
 EOF
 
-  dnsmasq --interface=$BRIDGE -p 5353 --strict-order --except-interface=lo --listen-address=$GATEWAY --bind-interfaces --dhcp-range=$DHCPRANGE --dhcp-no-override
+  pkill -9 -f "^dnsmasq --interface=$NAT "
+  dnsmasq --interface=$NAT -p 5353 --strict-order --except-interface=lo --listen-address=$GATEWAY --bind-interfaces --dhcp-range=$DHCPRANGE --dhcp-no-override
 
 fi
 
-ip link set $1 master $BRIDGE
+ip link set $1 master $NAT
 ip link set $1 up
