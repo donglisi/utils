@@ -1,6 +1,8 @@
 ## Features
 * Set up nat network (Support dhcp, which is the default network mode)
 * Set up bridge network
+* Can use bridge and nat mode at the same time
+* Can run multiple instances simultaneously
 * Use Virtio drive
 * Create a serial port
 * Generate random Mac address and record to history (Can also set a fixed mac address)
@@ -35,7 +37,7 @@
 ### Use a bridge network and specify an Ethernet interface 
     qemu-wrapper /path/to/fedora.qcow2 -br eth0
 
-### This is the packaging, exactly the same as qemu
+### This is the wrapper, exactly the same as qemu
     qemu-wrapper /path/to/fedora.qcow2 -vnc :0 -kernel /path/to/bzImage -append "root=/dev/vda1 console=ttyS0"
 <br/>
 
