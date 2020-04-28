@@ -2,7 +2,7 @@
 
 PROGNAME="$(basename $0)"
 usage() {
-  echo "Usage: "$PROGNAME" <disk path> [options]"
+  echo "Usage: "$PROGNAME" <disk image path> [options]"
   echo
   echo "Options:"
   echo "  -h or -help                       display this help and exit"
