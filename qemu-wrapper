@@ -12,8 +12,9 @@ usage() {
   echo
   echo "Examples:"
   echo "  "$PROGNAME" /path/to/fedora.qcow2 -vnc"
-  echo "  "$PROGNAME" /path/to/fedora.qcow2 -vnc :0 -br eno1 -mac 52:54:91:2c:1e:8d"
-  echo "  "$PROGNAME" /path/to/fedora.qcow2 -kernel /path/to/bzImage -append \"root=/dev/vda1 console=ttyS0\""
+  echo "  "$PROGNAME" /path/to/fedora.qcow2 -mac 52:54:91:2c:1e:8d"
+  echo "  "$PROGNAME" /path/to/fedora.qcow2 -br eth0"
+  echo "  "$PROGNAME" /path/to/fedora.qcow2 -vnc :0 -kernel /path/to/bzImage -append \"root=/dev/vda1 console=ttyS0\""
 }
 
 is_bridge_interface() {
