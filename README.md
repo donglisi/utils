@@ -3,19 +3,16 @@
 * Set up bridge network
 * Use Virtio drive
 * Create a serial port
-* Generate random Mac address and record to history (Can set a fixed mac address)
+* Generate random Mac address and record to history (Can also set a fixed mac address)
 * Assign vnc ports in order
 <br/>
 
 ## Dependencies
-### General
 * bash (to run this script)
-* procps or procps-ng
 * iproute2
-
-### For 'NATed' Internet sharing method
-* dnsmasq
 * iptables
+* procps-ng
+* dnsmasq
 <br/>
 
 ## Installation
