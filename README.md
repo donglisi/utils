@@ -1,6 +1,8 @@
 ## Features
 * Set up nat network (Support dhcp, which is the default network mode)
 * Set up bridge network
+* Can use bridge and nat mode at the same time
+* Can run multiple instances simultaneously
 * Use Virtio drive
 * Create a serial port
 * Generate random Mac address and record to history (Can also set a fixed mac address)
