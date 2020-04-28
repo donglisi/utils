@@ -27,11 +27,14 @@ cp qemu-wrapper /usr/bin
 ### Assign ports to vnc in order
     qemu-wrapper /path/to/fedora.qcow2 -vnc
 
-### Specify a vnc port according to qemu's rules; Use a bridged network and specify an Ethernet interface; Set mac address
-    qemu-wrapper /path/to/fedora.qcow2 -vnc :0 -br eth0 -mac 52:54:91:2c:1e:8d
+### Set mac address
+    qemu-wrapper /path/to/fedora.qcow2 -mac 52:54:91:2c:1e:8d
 
-### This program is fully compatible with the use of qemu
-    qemu-wrapper /path/to/fedora.qcow2 -kernel /path/to/bzImage -append "root=/dev/vda1 console=ttyS0"
+### Use a bridged network and specify an Ethernet interface 
+    qemu-wrapper /path/to/fedora.qcow2 -br eth0
+
+### This is the packaging, exactly the same as qemu
+    qemu-wrapper /path/to/fedora.qcow2 -vnc :0 -kernel /path/to/bzImage -append "root=/dev/vda1 console=ttyS0"
 <br/>
 
 ## License
