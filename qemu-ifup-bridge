@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if ! is_bridge_interface $BRIDGE; then
   IP=$(ip -4 addr show $ETHERNET | grep " inet " | awk '{print $2}')

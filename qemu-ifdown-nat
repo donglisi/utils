@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ip link set $1 nomaster
 
