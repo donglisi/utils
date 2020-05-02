@@ -1,8 +1,16 @@
 #!/bin/bash
 
-PROGNAME="$(basename $0)"
+export ETHERNET=""
+export BRIDGE_BRIDGE=wbr1
+export NAT_BRIDGE=wbr0
+export NAT_NETWORK=192.168.53.0
+export NAT_NETMASK=255.255.255.0
+export NAT_GATEWAY=192.168.53.1
+export NAT_DHCPRANGE=192.168.53.2,192.168.53.254
+
+progname="$(basename $0)"
 usage() {
-  echo "Usage: "$PROGNAME" <disk image path> [options]"
+  echo "Usage: "$progname" <disk image path> [options]"
   echo
   echo "Options:"
   echo "  -h or -help                       display this help and exit"
@@ -11,17 +19,11 @@ usage() {
   echo "  -vnc [:qemu_vnc_port]             Enable vnc and assign ports in order"
   echo
   echo "Examples:"
-  echo "  "$PROGNAME" /path/to/fedora.qcow2 -vnc"
-  echo "  "$PROGNAME" /path/to/fedora.qcow2 -mac 52:54:91:2c:1e:8d"
-  echo "  "$PROGNAME" /path/to/fedora.qcow2 -br eth0"
-  echo "  "$PROGNAME" /path/to/fedora.qcow2 -vnc :0 -kernel /path/to/bzImage -append \"root=/dev/vda1 console=ttyS0\""
+  echo "  "$progname" /path/to/fedora.qcow2 -vnc"
+  echo "  "$progname" /path/to/fedora.qcow2 -mac 52:54:91:2c:1e:8d"
+  echo "  "$progname" /path/to/fedora.qcow2 -br eth0"
+  echo "  "$progname" /path/to/fedora.qcow2 -vnc :0 -kernel /path/to/bzImage -append \"root=/dev/vda1 console=ttyS0\""
 }
-
-is_bridge_interface() {
-    [[ -z "$1" ]] && return 1
-    [[ -d "/sys/class/net/${1}/bridge" ]]
-}
-export -f is_bridge_interface
 
 if [[ -z $1 ]] || [[ $1 = "-h" ]] || [[ $1 = "-help" ]]; then
   usage
@@ -29,16 +31,20 @@ if [[ -z $1 ]] || [[ $1 = "-h" ]] || [[ $1 = "-help" ]]; then
 fi
 [[ ! -f $1 ]] && echo \<$1\> not is a file && exit 1
 
+is_bridge_interface() {
+    [[ -z "$1" ]] && return 1
+    [[ -d "/sys/class/net/${1}/bridge" ]]
+}
+export -f is_bridge_interface
+
 disk=" -drive file=$1,if=virtio "
 smp=" -smp 2 "
 mem=" -m 2g "
 net=nat
 vnc=""
 mac_addr=""
+host_share_directory=""
 tap_number=$(comm -3 <(seq -f "%02g" 0 99) <(ip a | grep -Eo "^[0-9]+: tap[0-9]+" | awk '{gsub("tap","", $2); printf "%02d\n", $2}' | sort -V) | head -n 1 | sed -E 's/^0{1}//')
-export ETHERNET=""
-export NAT=wbr0
-export BRIDGE=wbr1
 
 mkdir -p /var/run/qemu-wrapper/
 mac_history=/var/run/qemu-wrapper/mac_address_history
@@ -59,6 +65,11 @@ for ((i=$(("${#args[@]}" - 1)); i > 0; --i)); do
     ;;
   -mac)
     mac_addr=${args[i+1]}
+    unset args[i]
+    unset args[i+1]
+    ;;
+  -hsd)
+    host_share_directory="-fsdev local,id=share,path=${args[i+1]},security_model=none -device virtio-9p-pci,fsdev=share,mount_tag=hsd"
     unset args[i]
     unset args[i+1]
     ;;
@@ -84,4 +95,4 @@ qemu-system-x86_64 -enable-kvm -cpu host \
   -netdev tap,id=tap0,ifname=tap$tap_number,script=/etc/qemu-ifup-$net,downscript=/etc/qemu-ifdown-$net \
   -device virtio-net,netdev=tap0,mac=$mac_addr \
   -device virtio-rng-pci \
-  $disk $smp $mem $vnc "${args[@]}"
+   $disk $smp $mem $host_share_directory $vnc "${args[@]}"

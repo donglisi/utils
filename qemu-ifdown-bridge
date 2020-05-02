@@ -2,17 +2,17 @@
 
 ip link set $1 nomaster
 
-if is_bridge_interface $BRIDGE; then
+if is_bridge_interface $BRIDGE_BRIDGE; then
   t1=$(ip link show $ETHERNET)
-  t2=$(ip link show master $BRIDGE)
+  t2=$(ip link show master $BRIDGE_BRIDGE)
   if [[ "$t1" = "$t2" ]]; then
-    IP=$(ip -4 addr show $BRIDGE | grep " inet " | awk '{print $2}')
-    GATEWAY=$(ip -4 route list 0/0 dev $BRIDGE | cut -d\  -f3)
+    ip_addr=$(ip -4 addr show $BRIDGE_BRIDGE | grep " inet " | awk '{print $2}')
+    default_route=$(ip -4 route list 0/0 dev $BRIDGE_BRIDGE | cut -d\  -f3)
 
     ip link set $ETHERNET nomaster
-    ip link del $BRIDGE
+    ip link del $BRIDGE_BRIDGE
 
-    [[ -n "$IP" ]] && ip addr add $IP dev $ETHERNET
-    [[ -n "$GATEWAY" ]] && ip route add default via $GATEWAY dev $ETHERNET
+    [[ -n "$ip_addr" ]] && ip addr add $ip_addr dev $ETHERNET
+    [[ -n "$default_route" ]] && ip route add default via $default_route dev $ETHERNET
   fi
 fi

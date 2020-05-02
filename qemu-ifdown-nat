@@ -2,7 +2,11 @@
 
 ip link set $1 nomaster
 
-if is_bridge_interface $NAT && [[ -z $(ip link show master $NAT) ]] ; then
-  ip link del $NAT
-  pkill -9 -f "^dnsmasq --interface=$NAT "
+if is_bridge_interface $NAT_BRIDGE && [[ -z $(ip link show master $NAT_BRIDGE) ]] ; then
+  ip link del $NAT_BRIDGE
+  pkill -9 -f "^dnsmasq --interface=$NAT_BRIDGE "
+  iptables -t nat -D PREROUTING -i $NAT_BRIDGE -p udp --dport 53 -j DNAT --to-destination $NAT_GATEWAY:5353
+  iptables -t nat -D POSTROUTING -s $NAT_NETWORK/$NAT_NETMASK -j MASQUERADE
+  iptables -t filter -D FORWARD -s $NAT_NETWORK/$NAT_NETMASK -i $NAT_BRIDGE -j ACCEPT
+  iptables -t filter -D FORWARD -d $NAT_NETWORK/$NAT_NETMASK -o $NAT_BRIDGE -m state --state RELATED,ESTABLISHED -j ACCEPT
 fi
