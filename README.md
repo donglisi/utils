@@ -1,11 +1,11 @@
 ## Features
 * Set up nat network (Support dhcp, which is the default network mode)
 * Set up bridge network
-* Can use bridge and nat mode at the same time
-* Can run multiple instances simultaneously
 * Use Virtio drive
 * Create a serial port
+* Share directory via 9p file system
 * Generate random Mac address and record to history (Can also set a fixed mac address)
+* Assign ports to vnc in order
 * Support all options of qemu, but the first parameter must be a disk image
 <br/>
 
@@ -25,19 +25,19 @@
 
 
 ## Examples
-### Boot a disk image
+### start a disk image
     qemu-wrapper /path/to/fedora.qcow2
-
-### Set mac address
-    qemu-wrapper /path/to/fedora.qcow2 -mac 52:54:91:2c:1e:8d
 
 ### Use a bridge network and specify an Ethernet interface 
     qemu-wrapper /path/to/fedora.qcow2 -br eth0
 
-### Share directory via 9p file system
+### Set mac address
+    qemu-wrapper /path/to/fedora.qcow2 -mac 52:54:91:2c:1e:8d
+
+### Share directory
     qemu-wrapper /path/to/fedora.qcow2 -dir /path/to/share_directory
 
-### Assign ports to vnc in order
+### Enable vnc
     qemu-wrapper /path/to/fedora.qcow2 -vnc
 
 ### Use options supported by qemu
