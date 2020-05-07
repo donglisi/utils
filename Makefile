@@ -6,9 +6,9 @@ all:
 	@echo "Run 'make uninstall' for uninstallation."
 
 install:
-	install -Dm755 qemu-wrapper $(DESTDIR)$(BINDIR)/
-	install -Dm755 qemu-wrapper-if* $(DESTDIR)/etc/
+	install -Dm755 qemu-wrapper $(BINDIR)/qemu-wrapper
+	install -Dm755 qemu-wrapper-if* /etc/
 
 uninstall:
-	rm -f $(DESTDIR)$(BINDIR)/qemu-wrapper
-	rm -f $(DESTDIR)/etc/qemu-wrapper-if*
+	rm -f $(BINDIR)/qemu-wrapper
+	rm -f /etc/qemu-wrapper-if*
