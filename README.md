@@ -25,7 +25,7 @@
 
 
 ## Examples
-### start a disk image
+### Start a disk image
     qemu-wrapper /path/to/fedora.qcow2
 
 ### Use a bridge network and specify an Ethernet interface 
