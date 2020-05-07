@@ -40,7 +40,7 @@
 ### Assign ports to vnc in order
     qemu-wrapper /path/to/fedora.qcow2 -vnc
 
-### exactly the same as qemu
+### Use options supported by qemu
     qemu-wrapper /path/to/fedora.qcow2 -kernel /path/to/bzImage -append "root=/dev/vda1 console=ttyS0" -nographic -vnc :0
 <br/>
 
