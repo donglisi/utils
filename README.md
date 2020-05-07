@@ -6,7 +6,7 @@
 * Use Virtio drive
 * Create a serial port
 * Generate random Mac address and record to history (Can also set a fixed mac address)
-* Assign vnc ports in order
+* Support all options of qemu, but the first parameter must be a disk image
 <br/>
 
 ## Dependencies
@@ -20,16 +20,13 @@
 ## Installation
     git clone https://github.com/kgdboc/qemu-wrapper.git
     cd qemu-wrapper
-    cp qemu-if* /etc
-    cp qemu-wrapper /usr/bin
+    make install
 <br/>
 
-## Examples
-### Specify the disk image path, Use nat network
-    qemu-wrapper /path/to/fedora.qcow2
 
-### Assign ports to vnc in order
-    qemu-wrapper /path/to/fedora.qcow2 -vnc
+## Examples
+### Boot a disk image
+    qemu-wrapper /path/to/fedora.qcow2
 
 ### Set mac address
     qemu-wrapper /path/to/fedora.qcow2 -mac 52:54:91:2c:1e:8d
@@ -37,8 +34,14 @@
 ### Use a bridge network and specify an Ethernet interface 
     qemu-wrapper /path/to/fedora.qcow2 -br eth0
 
-### This is the wrapper, exactly the same as qemu
-    qemu-wrapper /path/to/fedora.qcow2 -vnc :0 -kernel /path/to/bzImage -append "root=/dev/vda1 console=ttyS0"
+### Share directory via 9p file system
+    qemu-wrapper /path/to/fedora.qcow2 -dir /path/to/share_directory
+
+### Assign ports to vnc in order
+    qemu-wrapper /path/to/fedora.qcow2 -vnc
+
+### exactly the same as qemu
+    qemu-wrapper /path/to/fedora.qcow2 -kernel /path/to/bzImage -append "root=/dev/vda1 console=ttyS0" -nographic -vnc :0
 <br/>
 
 ## License
