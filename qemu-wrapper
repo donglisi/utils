@@ -90,7 +90,7 @@ unset args[0]
 echo mac address : $mac_addr
 
 qemu-system-x86_64 -enable-kvm $smp $mem $disk -cpu host \
-  -netdev tap,id=tap0,ifname=tap$tap_number,script=/etc/qemu-ifup-$net,downscript=/etc/qemu-ifdown-$net \
+  -netdev tap,id=tap0,ifname=tap$tap_number,script=/etc/qemu-wrapper-ifup-$net,downscript=/etc/qemu-wrapper-ifdown-$net \
   -chardev pty,id=c0 \
   -device virtio-net,netdev=tap0,mac=$mac_addr \
   -device isa-serial,chardev=c0 \
