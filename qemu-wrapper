@@ -13,16 +13,15 @@ usage() {
   echo "Usage: "$progname" <disk image path> [options]"
   echo
   echo "Options:"
-  echo "  -h or -help                       display this help and exit"
-  echo "  -br <interface_with_internet>     Set the network mode to bridge (default is nat)"
+  echo "  -h or -help                       Display this help and exit"
+  echo "  -br  <interface_with_internet>    Set the network mode to bridge (default is nat)"
   echo "  -mac <mac_address>                Set mac address"
-  echo "  -vnc [:qemu_vnc_port]             Enable vnc and assign ports in order"
+  echo "  -dir <share_directory>            Set share directory"
+  echo "  -vnc                              Enable vnc and assign ports in order"
   echo
   echo "Examples:"
-  echo "  "$progname" /path/to/fedora.qcow2 -vnc"
-  echo "  "$progname" /path/to/fedora.qcow2 -mac 52:54:91:2c:1e:8d"
-  echo "  "$progname" /path/to/fedora.qcow2 -br eth0"
-  echo "  "$progname" /path/to/fedora.qcow2 -vnc :0 -kernel /path/to/bzImage -append \"root=/dev/vda1 console=ttyS0\""
+  echo "  "$progname" /path/to/fedora.qcow2 -br eth0 -mac 52:54:91:2c:1e:8d -dir /path/to/share_directory -vnc"
+  echo "  "$progname" /path/to/fedora.qcow2 -kernel /path/to/bzImage -append \"root=/dev/vda1 console=ttyS0\" -nographic -vnc :0"
 }
 
 if [[ -z $1 ]] || [[ $1 = "-h" ]] || [[ $1 = "-help" ]]; then
@@ -43,7 +42,7 @@ mem=" -m 2g "
 net=nat
 vnc=""
 mac_addr=""
-host_share_directory=""
+share_directory=""
 tap_number=$(comm -3 <(seq -f "%02g" 0 99) <(ip a | grep -Eo "^[0-9]+: tap[0-9]+" | awk '{gsub("tap","", $2); printf "%02d\n", $2}' | sort -V) | head -n 1 | sed -E 's/^0{1}//')
 
 mkdir -p /var/run/qemu-wrapper/
@@ -68,8 +67,8 @@ for ((i=$(("${#args[@]}" - 1)); i > 0; --i)); do
     unset args[i]
     unset args[i+1]
     ;;
-  -hsd)
-    host_share_directory="-fsdev local,id=share,path=${args[i+1]},security_model=none -device virtio-9p-pci,fsdev=share,mount_tag=hsd"
+  -dir)
+    share_directory="-fsdev local,id=share,path=${args[i+1]},security_model=none -device virtio-9p-pci,fsdev=share,mount_tag=hsd"
     unset args[i]
     unset args[i+1]
     ;;
@@ -90,9 +89,10 @@ done
 unset args[0]
 echo mac address : $mac_addr
 
-qemu-system-x86_64 -enable-kvm -cpu host \
-  -chardev pty,id=c0 -device isa-serial,chardev=c0 \
+qemu-system-x86_64 -enable-kvm $smp $mem $disk -cpu host \
   -netdev tap,id=tap0,ifname=tap$tap_number,script=/etc/qemu-ifup-$net,downscript=/etc/qemu-ifdown-$net \
+  -chardev pty,id=c0 \
   -device virtio-net,netdev=tap0,mac=$mac_addr \
+  -device isa-serial,chardev=c0 \
   -device virtio-rng-pci \
-   $disk $smp $mem $host_share_directory $vnc "${args[@]}"
+  $share_directory $vnc "${args[@]}"
