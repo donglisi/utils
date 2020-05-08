@@ -18,7 +18,7 @@
 <br/>
 
 ## Installation
-    git clone https://github.com/kgdboc/qemu-wrapper.git
+    git clone --depth 1 https://github.com/kgdboc/qemu-wrapper.git
     cd qemu-wrapper
     make install
 <br/>
