@@ -43,7 +43,6 @@ net=nat
 vnc=""
 mac_addr=""
 share_directory=""
-tap_number=$(comm -3 <(seq -f "%02g" 0 99) <(ip a | grep -Eo "^[0-9]+: tap[0-9]+" | awk '{gsub("tap","", $2); printf "%02d\n", $2}' | sort -V) | head -n 1 | sed -E 's/^0{1}//')
 
 mkdir -p /var/run/qemu-wrapper/
 mac_history=/var/run/qemu-wrapper/mac_address_history
@@ -90,7 +89,7 @@ unset args[0]
 echo mac address : $mac_addr
 
 qemu-system-x86_64 -enable-kvm $smp $mem $disk -cpu host \
-  -netdev tap,id=tap0,ifname=tap$tap_number,script=/etc/qemu-wrapper-ifup-$net,downscript=/etc/qemu-wrapper-ifdown-$net \
+  -netdev tap,id=tap0,script=/etc/qemu-wrapper-ifup-$net,downscript=/etc/qemu-wrapper-ifdown-$net \
   -chardev pty,id=c0 \
   -device virtio-net,netdev=tap0,mac=$mac_addr \
   -device isa-serial,chardev=c0 \
