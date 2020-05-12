@@ -4,10 +4,10 @@ if ! is_bridge_interface $BRIDGE_BRIDGE; then
   ip_addr=$(ip -4 addr show $ETHERNET | grep " inet " | awk '{print $2}')
   default_route=$(ip -4 route list 0/0 dev $ETHERNET | cut -d\  -f3)
 
-  [[ -z "$ip_addr" ]] && echo $ETHERNET No ip && exit 1 
-  [[ $(echo $ip_addr) =~ " " ]] && echo $ETHERNET has multiple ip && exit 2
-  [[ -z "$default_route" ]] && echo $ETHERNET No default route && echo exit 3
-  [[ $(echo $default_route) =~ " " ]] && echo $ETHERNET has multiple default route && exit 4
+  [[ -z "$ip_addr" ]] && echo $ETHERNET No ip && exit 11 
+  [[ $(echo $ip_addr) =~ " " ]] && echo $ETHERNET has multiple ip && exit 12
+  [[ -z "$default_route" ]] && echo $ETHERNET No default route && echo exit 13
+  [[ $(echo $default_route) =~ " " ]] && echo $ETHERNET has multiple default route && exit 14
 
   ip link add $BRIDGE_BRIDGE type bridge
   ip link set $BRIDGE_BRIDGE up
