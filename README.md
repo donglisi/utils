@@ -3,7 +3,7 @@
 * Set up bridge network
 * Use Virtio drive
 * Create a serial port
-* Share directory via 9p file system
+* Share directory via 9p file system (mount_tag=hsd)
 * Generate random Mac address and record to history (Can also set a fixed mac address)
 * Assign ports to vnc in order
 * Support all options of qemu, but the first parameter must be a disk image
@@ -18,7 +18,7 @@
 <br/>
 
 ## Installation
-    git clone https://github.com/kgdboc/qemu-wrapper.git
+    git clone --depth 1 https://github.com/kgdboc/qemu-wrapper.git
     cd qemu-wrapper
     make install
 <br/>
