@@ -43,14 +43,7 @@ net=nat
 vnc=""
 mac_addr=""
 share_directory=""
-
-mkdir -p /var/run/qemu-wrapper/
-mac_history=/var/run/qemu-wrapper/mac_address_history
-[[ -f $mac_history ]] && mac_addr=$(grep "^$1 " $mac_history | awk '{print $2}')
-if [[ -z $mac_addr ]]; then
-  printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff )) $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff ))
-  echo $1 $mac_addr >> $mac_history
-fi
+printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff )) $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff ))
 
 args=("$@")
 for ((i=$(("${#args[@]}" - 1)); i > -1 ; --i)); do
@@ -72,8 +65,9 @@ for ((i=$(("${#args[@]}" - 1)); i > -1 ; --i)); do
     unset args[i+1]
     ;;
   -dir)
-    virtiofsd --socket-path=/var/run/vm001-vhost-fs.sock -o source="${args[i+1]}" -o cache=always &
-    share_directory=" -chardev socket,id=char0,path=/var/run/vm001-vhost-fs.sock -device vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=myfs -m 4G -object memory-backend-file,id=mem,size=4G,mem-path=/dev/shm,share=on -numa node,memdev=mem "
+    timestamp=$(date +%s)
+    virtiofsd --socket-path=/var/run/vm001-vhost-fs.sock.$timestamp -o source="${args[i+1]}" -o cache=always &
+    share_directory=" -chardev socket,id=char0,path=/var/run/vm001-vhost-fs.sock.$timestamp -device vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=myfs -m 4G -object memory-backend-file,id=mem,size=4G,mem-path=/dev/shm,share=on -numa node,memdev=mem "
     unset args[i]
     unset args[i+1]
     ;;
