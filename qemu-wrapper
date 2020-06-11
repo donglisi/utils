@@ -72,7 +72,8 @@ for ((i=$(("${#args[@]}" - 1)); i > -1 ; --i)); do
     unset args[i+1]
     ;;
   -dir)
-    share_directory="-fsdev local,id=share,path=${args[i+1]},security_model=none -device virtio-9p-pci,fsdev=share,mount_tag=hsd"
+    virtiofsd --socket-path=/var/run/vm001-vhost-fs.sock -o source="${args[i+1]}" -o cache=always &
+    share_directory=" -chardev socket,id=char0,path=/var/run/vm001-vhost-fs.sock -device vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=myfs -m 4G -object memory-backend-file,id=mem,size=4G,mem-path=/dev/shm,share=on -numa node,memdev=mem "
     unset args[i]
     unset args[i+1]
     ;;
