@@ -15,6 +15,8 @@
 * iptables
 * procps-ng
 * dnsmasq
+* qemu-system-x86_64
+* virtiofsd (optional， Shared file)
 <br/>
 
 ## Installation
