@@ -6,7 +6,7 @@ if ! is_bridge_interface $BRIDGE_BRIDGE; then
 
   [[ -z "$ip_addr" ]] && echo $ETHERNET No ip && exit 11 
   [[ $(echo $ip_addr) =~ " " ]] && echo $ETHERNET has multiple ip && exit 12
-  [[ -z "$default_route" ]] && echo $ETHERNET No default route && echo exit 13
+  [[ -z "$default_route" ]] && echo $ETHERNET No default route && exit 13
   [[ $(echo $default_route) =~ " " ]] && echo $ETHERNET has multiple default route && exit 14
 
   ip link add $BRIDGE_BRIDGE type bridge
