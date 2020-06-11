@@ -4,7 +4,7 @@
 * Use Virtio drive
 * Create a serial port
 * Share directory via Virtio-fs file system (mount -t virtiofs myfs /path/to/mount_point)
-* Generate random Mac address and record to history (Can also set a fixed mac address)
+* Generate random Mac address (Can also set a fixed mac address)
 * Assign ports to vnc in order
 * Support all options of qemu
 <br/>
