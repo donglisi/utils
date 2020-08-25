@@ -40,6 +40,7 @@ Examples:
   qemu-wrapper -br eth0 -mac 52:54:91:2c:1e:8d -vnc fedora.qcow2
   qemu-wrapper -vda fedora.qcow2 -kernel bzImage -append "root=/dev/vda1 console=ttyS0" -serial stdio
 </pre>
+<br/>
 
 ## License
 GPLv3
