@@ -3,7 +3,6 @@
 * Set up bridge network
 * Use Virtio drive
 * Create a serial port
-* Share directory via Virtio-fs file system (mount -t virtiofs myfs /path/to/mount_point)
 * Generate random Mac address (Can also set a fixed mac address)
 * Assign ports to vnc in order
 * Support all options of qemu
@@ -16,7 +15,6 @@
 * procps-ng
 * dnsmasq
 * qemu-system-x86_64
-* virtiofsd (optional， Shared file)
 <br/>
 
 ## Installation
@@ -25,26 +23,23 @@
     make install
 <br/>
 
+<pre>
+Usage: qemu-wrapper [options] [disk_image]
 
-## Examples
-### Start a disk image
-    qemu-wrapper -disk /path/to/fedora.qcow2
+'disk_image' is a raw hard disk image for IDE hard disk 0
 
-### Use a bridge network and specify an Ethernet interface 
-    qemu-wrapper -disk /path/to/fedora.qcow2 -br eth0
+Standard options:
+-h or -help                  display this help and exit
+-br internet_interface       set the network mode to bridge (default is nat)
+-mac mac_address             set mac address
+-vnc                         enable vnc and assign ports in order
+-vda/-vdb/-vdc/-vdd file     set disk path
 
-### Set mac address
-    qemu-wrapper -disk /path/to/fedora.qcow2 -mac 52:54:91:2c:1e:8d
-
-### Share directory
-    qemu-wrapper -disk /path/to/fedora.qcow2 -dir /path/to/share_directory
-
-### Enable vnc
-    qemu-wrapper -disk /path/to/fedora.qcow2 -vnc
-
-### Use options supported by qemu
-    qemu-wrapper -disk /path/to/fedora.qcow2 -kernel /path/to/bzImage -append "root=/dev/vda1 console=ttyS0" -nographic -vnc :0
-<br/>
+Examples:
+  qemu-wrapper -br eth0 -mac 52:54:91:2c:1e:8d -vnc fedora.qcow2
+  qemu-wrapper -vda fedora.qcow2 -kernel bzImage -append "root=/dev/vda1 console=ttyS0" -serial stdio
+</pre>
 
 ## License
 GPLv3
+

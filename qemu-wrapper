@@ -11,18 +11,21 @@ export NAT_DHCPRANGE=192.168.53.2,192.168.53.254
 
 progname="$(basename $0)"
 usage() {
-  echo "Usage: "$progname" <disk image path> [options]"
+
+  echo "Usage: qemu-wrapper [options] [disk_image]"
   echo
-  echo "Options:"
-  echo "  -h or -help                       Display this help and exit"
-  echo "  -br  <interface_with_internet>    Set the network mode to bridge (default is nat)"
-  echo "  -mac <mac_address>                Set mac address"
-  echo "  -dir <share_directory>            Set share directory"
-  echo "  -vnc                              Enable vnc and assign ports in order"
+  echo "'disk_image' is a raw hard disk image for IDE hard disk 0"
+  echo
+  echo "Standard options:"
+  echo "-h or -help                  display this help and exit"
+  echo "-br internet_interface       set the network mode to bridge (default is nat)"
+  echo "-mac mac_address             set mac address"
+  echo "-vnc                         enable vnc and assign ports in order"
+  echo "-vda/-vdb/-vdc/-vdd file     set disk path"
   echo
   echo "Examples:"
-  echo "  "$progname" /path/to/fedora.qcow2 -br eth0 -mac 52:54:91:2c:1e:8d -dir /path/to/share_directory -vnc"
-  echo "  "$progname" /path/to/fedora.qcow2 -kernel /path/to/bzImage -append \"root=/dev/vda1 console=ttyS0\" -nographic -vnc :0"
+  echo "  "$progname" -br eth0 -mac 52:54:91:2c:1e:8d -vnc fedora.qcow2"
+  echo "  "$progname" -vda fedora.qcow2 -kernel bzImage -append \"root=/dev/vda1 console=ttyS0\" -serial stdio"
 }
 
 if [[ -z $1 ]] || [[ $1 = "-h" ]] || [[ $1 = "-help" ]]; then
@@ -36,13 +39,15 @@ is_bridge_interface() {
 }
 export -f is_bridge_interface
 
-disk=""
+vda=""
+vdb=""
+vdc=""
+vdd=""
 smp=" -smp 1 "
 mem=" -m 2g "
 net=nat
 vnc=""
 mac_addr=""
-share_directory=""
 printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff )) $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff ))
 
 args=("$@")
@@ -54,20 +59,28 @@ for ((i=$(("${#args[@]}" - 1)); i > -1 ; --i)); do
   -m)
     mem=""
     ;;
-  -disk)
-    disk=" -drive file=${args[i+1]},if=virtio "
+  -vda)
+    vda=" -drive file=${args[i+1]},if=virtio "
+    unset args[i]
+    unset args[i+1]
+    ;;
+  -vdb)
+    vdb=" -drive file=${args[i+1]},if=virtio "
+    unset args[i]
+    unset args[i+1]
+    ;;
+  -vdc)
+    vdc=" -drive file=${args[i+1]},if=virtio "
+    unset args[i]
+    unset args[i+1]
+    ;;
+  -vdd)
+    vdd=" -drive file=${args[i+1]},if=virtio "
     unset args[i]
     unset args[i+1]
     ;;
   -mac)
     mac_addr=${args[i+1]}
-    unset args[i]
-    unset args[i+1]
-    ;;
-  -dir)
-    timestamp=$(date +%s)
-    virtiofsd --socket-path=/var/run/vm001-vhost-fs.sock.$timestamp -o source="${args[i+1]}" -o cache=always &
-    share_directory=" -chardev socket,id=char0,path=/var/run/vm001-vhost-fs.sock.$timestamp -device vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=myfs -m 4G -object memory-backend-file,id=mem,size=4G,mem-path=/dev/shm,share=on -numa node,memdev=mem "
     unset args[i]
     unset args[i+1]
     ;;
@@ -90,9 +103,7 @@ echo mac address : $mac_addr
 
 qemu-system-x86_64 -enable-kvm $smp $mem -cpu host \
   -netdev tap,id=tap0,script=/etc/qemu-wrapper-ifup-$net,downscript=/etc/qemu-wrapper-ifdown-$net \
-  -chardev pty,id=c0 \
   -device virtio-net,netdev=tap0,mac=$mac_addr \
-  -device isa-serial,chardev=c0 \
   -device virtio-rng-pci \
-  $disk $share_directory $vnc "${args[@]}"
+  $vda $vdb $vdc $vdd $vnc "${args[@]}"
 
