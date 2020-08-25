@@ -2,7 +2,6 @@
 * Set up nat network (Support dhcp, which is the default network mode)
 * Set up bridge network
 * Use Virtio drive
-* Create a serial port
 * Generate random Mac address (Can also set a fixed mac address)
 * Assign ports to vnc in order
 * Support all options of qemu
