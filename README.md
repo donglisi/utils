@@ -23,6 +23,7 @@
     make install
 <br/>
 
+## Usage
 <pre>
 Usage: qemu-wrapper [options] [disk_image]
 
