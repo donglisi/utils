@@ -12,7 +12,6 @@
 * iproute2
 * iptables
 * procps-ng
-* dnsmasq
 * qemu-system-x86_64
 <br/>
 
@@ -32,11 +31,10 @@ Standard options:
 -h or -help                  display this help and exit
 -br internet_interface       set the network mode to bridge (default is nat)
 -mac mac_address             set mac address
--vnc                         enable vnc and assign ports in order
 -vda/-vdb/-vdc/-vdd file     set disk path
 
 Examples:
-  qemu-wrapper -br eth0 -mac 52:54:91:2c:1e:8d -vnc fedora.qcow2
+  qemu-wrapper -br eth0 -mac 52:54:91:2c:1e:8d fedora.qcow2
   qemu-wrapper -vda fedora.qcow2 -kernel bzImage -append "root=/dev/vda1 console=ttyS0" -serial stdio
 </pre>
 <br/>
