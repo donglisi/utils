@@ -23,9 +23,7 @@
 
 ## Usage
 <pre>
-Usage: qemu-wrapper [options] [disk_image]
-
-'disk_image' is a raw hard disk image for IDE hard disk 0
+Usage: qemu-wrapper [options]
 
 Standard options:
 -h or -help                  display this help and exit
