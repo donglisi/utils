@@ -12,19 +12,16 @@ export NAT_DHCPRANGE=192.168.53.2,192.168.53.254
 progname="$(basename $0)"
 usage() {
 
-  echo "Usage: qemu-wrapper [options] [disk_image]"
-  echo
-  echo "'disk_image' is a raw hard disk image for IDE hard disk 0"
+  echo "Usage: qemu-wrapper [options]"
   echo
   echo "Standard options:"
   echo "-h or -help                  display this help and exit"
   echo "-br internet_interface       set the network mode to bridge (default is nat)"
   echo "-mac mac_address             set mac address"
-  echo "-vnc                         enable vnc and assign ports in order"
   echo "-vda/-vdb/-vdc/-vdd file     set disk path"
   echo
   echo "Examples:"
-  echo "  "$progname" -br eth0 -mac 52:54:91:2c:1e:8d -vnc fedora.qcow2"
+  echo "  "$progname" -br eth0 -mac 52:54:91:2c:1e:8d fedora.qcow2"
   echo "  "$progname" -vda fedora.qcow2 -kernel bzImage -append \"root=/dev/vda1 console=ttyS0\" -serial stdio"
 }
 
@@ -39,16 +36,27 @@ is_bridge_interface() {
 }
 export -f is_bridge_interface
 
+vsocketdir=/var/run/virtiofsd
+touch $vsocketdir/rfs
+touch $vsocketdir/cfs
+mkdir -p $vsocketdir
+
+net=nat
+smp=" -smp 1 "
+mem=" -m 1G -object memory-backend-file,id=mem,size=1G,mem-path=/dev/shm,share=on -numa node,memdev=mem "
+vnc=" -vnc :"$(($(comm -3 <(seq 5900 6000) <(ss -nltp | grep "\"qemu-system-x86\"" | awk '{print $4}' | grep -Eo "[0-9]+$" | sort -V | uniq) | head -n 1) - 5900))
+printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff )) $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff ))
+rfs_kernel=""
+rfs_initrd=""
+rfs_append=""
+rfs_append_args=""
+rfs=""
+cfs=""
+pty=""
 vda=""
 vdb=""
 vdc=""
 vdd=""
-smp=" -smp 1 "
-mem=" -m 2g "
-net=nat
-vnc=""
-mac_addr=""
-printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff )) $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff ))
 
 args=("$@")
 for ((i=$(("${#args[@]}" - 1)); i > -1 ; --i)); do
@@ -58,6 +66,54 @@ for ((i=$(("${#args[@]}" - 1)); i > -1 ; --i)); do
     ;;
   -m)
     mem=""
+    ;;
+  -pty)
+    pty=" -chardev pty,id=c0 -device isa-serial,chardev=c0 "
+    unset args[i]
+    ;;
+  -mac)
+    mac_addr=${args[i+1]}
+    unset args[i]
+    unset args[i+1]
+    ;;
+  -br)
+    ETHERNET=${args[i+1]}
+    net=bridge
+    unset args[i]
+    unset args[i+1]
+    ;;
+  -kernel)
+    kernel=""
+    ;;
+  -initrd)
+    initrd=""
+    ;;
+  -noc)
+    vnc=""
+    unset args[i]
+    ;;
+  -vnc)
+    vnc=""
+    ;;
+  -rfs)
+    rootdir=${args[i+1]}
+    number=$(($(basename $(ls -1v $vsocketdir/rfs* | tail -n 1) | sed 's/rfs//')+1))
+    nohup /usr/libexec/virtiofsd --socket-path=$vsocketdir/rfs$number -o source="$rootdir" -o cache=always >/dev/null 2>&1 &
+    rfs=" -chardev socket,id=char0,path=$vsocketdir/rfs$number -device vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=rfs "
+    rfs_kernel=" -kernel /c/vmlinuz-5.10.4 "
+    rfs_initrd=" -initrd /c/initramfs.img "
+    rfs_append=" -append "
+    rfs_append_args=" root=rfs rootfstype=virtiofs rw selinux=0 "
+    unset args[i]
+    unset args[i+1]
+    ;;
+  -cfs)
+    datadir=${args[i+1]}
+    number=$(($(basename $(ls -1v $vsocketdir/cfs* | tail -n 1) | sed 's/cfs//')+1))
+    nohup /usr/libexec/virtiofsd --socket-path=$vsocketdir/cfs$number -o source="$datadir" -o cache=always >/dev/null 2>&1 &
+    cfs=" -chardev socket,id=char1,path=$vsocketdir/cfs$number -device vhost-user-fs-pci,queue-size=1024,chardev=char1,tag=cfs "
+    unset args[i]
+    unset args[i+1]
     ;;
   -vda)
     vda=" -drive file=${args[i+1]},if=virtio "
@@ -79,29 +135,13 @@ for ((i=$(("${#args[@]}" - 1)); i > -1 ; --i)); do
     unset args[i]
     unset args[i+1]
     ;;
-  -mac)
-    mac_addr=${args[i+1]}
-    unset args[i]
-    unset args[i+1]
-    ;;
-  -br)
-    ETHERNET=${args[i+1]}
-    net=bridge
-    unset args[i]
-    unset args[i+1]
-    ;;
-  -vnc)
-    if [[ ${args[i+1]} != :* ]]; then
-      vnc=" -vnc :"$(($(comm -3 <(seq 5900 6000) <(ss -nltp | grep "\"qemu-system-x86\"" | awk '{print $4}' | grep -Eo "[0-9]+$" | sort -V | uniq) | head -n 1) - 5900))
-      unset args[i]
-    fi
-    ;;
   esac
 done
 
-qemu-system-x86_64 -enable-kvm $smp $mem -cpu host \
-  -netdev tap,id=tap0,script=/etc/qemu-wrapper-ifup-$net,downscript=/etc/qemu-wrapper-ifdown-$net \
-  -device virtio-net,netdev=tap0,mac=$mac_addr \
-  -device virtio-rng-pci \
-  $vda $vdb $vdc $vdd $vnc "${args[@]}"
+[[ ! -z "$vnc" ]] && echo $vnc
 
+qemu-system-x86_64 -enable-kvm $smp $mem -cpu host \
+ -netdev tap,id=tap0,script=/etc/qemu-wrapper-ifup-$net,downscript=/etc/qemu-wrapper-ifdown-$net \
+ -device virtio-net,netdev=tap0,mac=$mac_addr \
+ -device virtio-rng-pci \
+ $pty $vnc $rfs $rfs_kernel $rfs_initrd $rfs_append "$rfs_append_args" $cfs "${args[@]}" $vda $vdb $vdc $vdd -daemonize

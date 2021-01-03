@@ -7,17 +7,7 @@ if ! is_bridge_interface $NAT_BRIDGE; then
   ip addr add $NAT_GATEWAY/$NAT_NETMASK dev $NAT_BRIDGE
   ip link set $NAT_BRIDGE up
   
-  iptables -t nat -I PREROUTING -i $NAT_BRIDGE -p tcp --dport 53 -j DNAT --to-destination $NAT_GATEWAY:$NAT_DNS_PORT
-  iptables -t nat -I PREROUTING -i $NAT_BRIDGE -p udp --dport 53 -j DNAT --to-destination $NAT_GATEWAY:$NAT_DNS_PORT
   iptables -t nat -I POSTROUTING -s $NAT_NETWORK/$NAT_NETMASK -j MASQUERADE
-  iptables -I FORWARD -s $NAT_NETWORK/$NAT_NETMASK -i $NAT_BRIDGE -j ACCEPT
-  iptables -I FORWARD -d $NAT_NETWORK/$NAT_NETMASK -o $NAT_BRIDGE -m state --state RELATED,ESTABLISHED -j ACCEPT
-  iptables -I INPUT -i $NAT_BRIDGE -p tcp --dport $NAT_DNS_PORT -j ACCEPT
-  iptables -I INPUT -i $NAT_BRIDGE -p udp --dport $NAT_DNS_PORT -j ACCEPT
-  iptables -I INPUT -i $NAT_BRIDGE -p udp --dport 67 -j ACCEPT
-
-  pkill -9 -f "^dnsmasq --interface=$NAT "
-  dnsmasq --interface=$NAT_BRIDGE -p 5353 --strict-order --except-interface=lo --listen-address=$NAT_GATEWAY --bind-interfaces --dhcp-range=$NAT_DHCPRANGE --dhcp-no-override
 fi
 
 ip link set $1 master $NAT_BRIDGE
