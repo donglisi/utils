@@ -46,17 +46,17 @@ smp=" -smp 1 "
 mem=" -m 1G -object memory-backend-file,id=mem,size=1G,mem-path=/dev/shm,share=on -numa node,memdev=mem "
 vnc=" -vnc :"$(($(comm -3 <(seq 5900 6000) <(ss -nltp | grep "\"qemu-system-x86\"" | awk '{print $4}' | grep -Eo "[0-9]+$" | sort -V | uniq) | head -n 1) - 5900))
 printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff )) $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff ))
-rfs_kernel=""
-rfs_initrd=""
-rfs_append=""
-rfs_append_args=""
-rfs=""
-cfs=""
-pty=""
-vda=""
-vdb=""
-vdc=""
-vdd=""
+rfs_kernel=
+rfs_initrd=
+rfs_append=
+rfs_append_args=
+rfs=
+cfs=
+pty=
+vda=
+vdb=
+vdc=
+vdd=
 
 args=("$@")
 for ((i=$(("${#args[@]}" - 1)); i > -1 ; --i)); do
@@ -100,8 +100,8 @@ for ((i=$(("${#args[@]}" - 1)); i > -1 ; --i)); do
     number=$(($(basename $(ls -1v $vsocketdir/rfs* | tail -n 1) | sed 's/rfs//')+1))
     nohup /usr/libexec/virtiofsd --socket-path=$vsocketdir/rfs$number -o source="$rootdir" -o cache=always >/dev/null 2>&1 &
     rfs=" -chardev socket,id=char0,path=$vsocketdir/rfs$number -device vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=rfs "
-    rfs_kernel=" -kernel /c/vmlinuz-5.10.4 "
-    rfs_initrd=" -initrd /c/initramfs.img "
+    rfs_kernel=" -kernel /boot/vmlinuz-5.9.13-200.fc33.x86_64 "
+    rfs_initrd=" -initrd /c/initramfs-5.9.13-200.fc33.x86_64.img "
     rfs_append=" -append "
     rfs_append_args=" root=rfs rootfstype=virtiofs rw selinux=0 "
     unset args[i]
@@ -144,4 +144,4 @@ qemu-system-x86_64 -enable-kvm $smp $mem -cpu host \
  -netdev tap,id=tap0,script=/etc/qemu-wrapper-ifup-$net,downscript=/etc/qemu-wrapper-ifdown-$net \
  -device virtio-net,netdev=tap0,mac=$mac_addr \
  -device virtio-rng-pci \
- $pty $vnc $rfs $rfs_kernel $rfs_initrd $rfs_append "$rfs_append_args" $cfs "${args[@]}" $vda $vdb $vdc $vdd -daemonize
+ $pty $vnc $rfs $rfs_kernel $rfs_initrd $rfs_append "$rfs_append_args""${args[@]}" $cfs $vda $vdb $vdc $vdd -daemonize
