@@ -1,21 +1,24 @@
 #!/bin/bash
 
-if ! is_bridge_interface $BRIDGE_BRIDGE; then
-  ip_addr=$(ip -4 addr show $ETHERNET | grep " inet " | awk '{print $2}')
-  default_route=$(ip -4 route list 0/0 dev $ETHERNET | cut -d\  -f3)
+br=eth-br
+eth=eno1
 
-  [[ -z "$ip_addr" ]] && echo $ETHERNET No ip && exit 11 
-  [[ $(echo $ip_addr) =~ " " ]] && echo $ETHERNET has multiple ip && exit 12
-  [[ -z "$default_route" ]] && echo $ETHERNET No default route && exit 13
-  [[ $(echo $default_route) =~ " " ]] && echo $ETHERNET has multiple default route && exit 14
+if [ ! -e /sys/class/net/$br/bridge ] ; then
+  ip_addr=$(ip -4 addr show $eth | grep " inet " | awk '{print $2}')
+  default_route=$(ip -4 route list 0/0 dev $eth | cut -d\  -f3)
 
-  ip link add $BRIDGE_BRIDGE type bridge
-  ip link set $BRIDGE_BRIDGE up
-  ip link set $ETHERNET master $BRIDGE_BRIDGE
-  ip addr del $ip_addr dev $ETHERNET
-  ip addr add $ip_addr dev $BRIDGE_BRIDGE
-  ip route add default via $default_route dev $BRIDGE_BRIDGE
+  [[ -z "$ip_addr" ]] && echo $eth No ip && exit 11 
+  [[ $(echo $ip_addr) =~ " " ]] && echo $eth has multiple ip && exit 12
+  [[ -z "$default_route" ]] && echo $eth No default route && exit 13
+  [[ $(echo $default_route) =~ " " ]] && echo $eth has multiple default route && exit 14
+
+  ip addr del $ip_addr dev $eth
+  ip link add $br type bridge
+  ip link set $eth master $br
+  ip addr add $ip_addr dev $br
+  ip link set $br up
+  ip route add default via $default_route dev $br
 fi
 
-ip link set $1 master $BRIDGE_BRIDGE
+ip link set $1 master $br
 ip link set $1 up

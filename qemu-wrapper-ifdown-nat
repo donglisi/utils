@@ -1,8 +1,0 @@
-#!/bin/bash
-
-ip link set $1 nomaster
-
-if is_bridge_interface $NAT_BRIDGE && [[ -z $(ip link show master $NAT_BRIDGE) ]] ; then
-  ip link del $NAT_BRIDGE
-  iptables -t nat -D POSTROUTING -s $NAT_NETWORK/$NAT_NETMASK -j MASQUERADE
-fi

@@ -1,14 +1,15 @@
 #!/bin/bash
 
-echo 1 > /proc/sys/net/ipv4/ip_forward
+br=nat-br
+net=192.168.53.1/24
 
-if ! is_bridge_interface $NAT_BRIDGE; then
-  ip link add name $NAT_BRIDGE type bridge
-  ip addr add $NAT_GATEWAY/$NAT_NETMASK dev $NAT_BRIDGE
-  ip link set $NAT_BRIDGE up
-  
-  iptables -t nat -I POSTROUTING -s $NAT_NETWORK/$NAT_NETMASK -j MASQUERADE
+if [ ! -e /sys/class/net/$br/bridge ] ; then
+  ip link add name $br type bridge
+  ip addr add $net dev $br
+  ip link set $br up
+  iptables -t nat -I POSTROUTING -s $net -j MASQUERADE
+  echo 1 > /proc/sys/net/ipv4/ip_forward
 fi
 
-ip link set $1 master $NAT_BRIDGE
+ip link set $1 master $br
 ip link set $1 up
