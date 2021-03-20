@@ -4,10 +4,10 @@ vda=""
 vdb=""
 vdc=""
 vdd=""
-smp=" -smp 6 "
-mem=" -m 2g "
+smp=" -smp 16 "
+mem=" -m 4g "
+daemonize=" -daemonize "
 net=nat
-vnc=" -vnc :"$(($(comm -3 <(seq 5900 6000) <(ss -nltp | grep "\"qemu-system-x86\"" | awk '{print $4}' | grep -Eo "[0-9]+$" | sort -V | uniq) | head -n 1) - 5900))
 printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff )) $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff ))
 
 args=("$@")
@@ -48,16 +48,11 @@ for ((i=$(("${#args[@]}" - 1)); i > -1 ; --i)); do
     net=bridge
     unset args[i]
     ;;
-  -noc)
-    vnc=""
+  -nod)
+    daemonize=""
     unset args[i]
-    ;;
-  -vnc)
-    vnc=""
     ;;
   esac
 done
 
-[[ ! -z "$vnc" ]] && echo $vnc
-
-qemu-system-x86_64 -enable-kvm -cpu host $smp $mem -netdev tap,id=tap0,script=/etc/qemu-wrapper-ifup-$net -device virtio-net,netdev=tap0,mac=$mac_addr $vda $vdb $vdc $vdd $vnc "${args[@]}" -daemonize
+qemu-system-x86_64 -enable-kvm $smp $mem -netdev tap,id=tap0,script=/etc/qemu-wrapper-ifup-$net -device virtio-net,netdev=tap0,mac=$mac_addr $vda $vdb $vdc $vdd "${args[@]}" $daemonize
