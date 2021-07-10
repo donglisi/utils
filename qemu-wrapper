@@ -1,11 +1,7 @@
 #!/bin/bash
 
-vda=""
-vdb=""
-vdc=""
-vdd=""
-smp=" -smp 8,sockets=1,cores=8 "
-mem=" -m 8g "
+smp=" -smp 2,sockets=1,cores=2 "
+mem=" -m 2g "
 net=nat
 printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff )) $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff ))
 
