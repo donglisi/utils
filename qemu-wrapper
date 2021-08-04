@@ -2,7 +2,7 @@
 
 smp=" -smp 2,sockets=1,cores=2 "
 mem=" -m 2g "
-net=nat
+net=bridge
 printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff )) $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff ))
 
 args=("$@")
@@ -21,6 +21,10 @@ for ((i=$(("${#args[@]}" - 1)); i > -1 ; --i)); do
     ;;
   -br)
     net=bridge
+    unset args[i]
+    ;;
+  -nat)
+    net=nat
     unset args[i]
     ;;
   esac
