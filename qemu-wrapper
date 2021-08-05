@@ -2,28 +2,42 @@
 
 smp=" -smp 2,sockets=1,cores=2 "
 mem=" -m 2g "
-net=nat
+net=bridge
 printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff )) $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff ))
+export eth=enp5s0
+args=()
 
-args=("$@")
-for ((i=$(("${#args[@]}" - 1)); i > -1 ; --i)); do
-  case ${args[i]} in
+while test $# -gt 0 ; do
+  case $1 in
   -smp)
     smp=""
+    args+=("$1")
     ;;
   -m)
     mem=""
+    args+=("$1")
     ;;
   -mac)
-    mac_addr=${args[i+1]}
-    unset args[i]
-    unset args[i+1]
+    mac_addr="$2"
+    shift
+    ;;
+  -eth)
+    eth="$2"
+    shift
     ;;
   -br)
     net=bridge
-    unset args[i]
+    ;;
+  -nat)
+    net=nat
+    ;;
+  *)
+    args+=("$1")
     ;;
   esac
+  shift
 done
 
-qemu-system-x86_64 -enable-kvm $smp $mem -netdev tap,id=tap0,script=/etc/qemu-wrapper-ifup-$net -device virtio-net,netdev=tap0,mac=$mac_addr "${args[@]}"
+[ -d /sys/class/net/"$eth" ] || echo Please check ethernet interface config; exit 1
+
+qemu-system-x86_64 -machine q35,accel=kvm $smp $mem -netdev tap,id=tap0,script=/etc/qemu-wrapper-ifup-$net -device virtio-net,netdev=tap0,mac="$mac_addr" "${args[@]}"
