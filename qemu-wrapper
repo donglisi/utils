@@ -34,6 +34,10 @@ while test $# -gt 0 ; do
   *)
     args+=("$1")
     ;;
+  -nat)
+    net=nat
+    unset args[i]
+    ;;
   esac
   shift
 done
