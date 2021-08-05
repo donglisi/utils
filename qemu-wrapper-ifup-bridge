@@ -2,14 +2,10 @@
 
 br=eth-br
 
-if [ ! -e /sys/class/net/$br/bridge ] ; then
+if [ ! -e /sys/class/net/$br/bridge ]
+then
   ip_addr=$(ip -4 addr show $eth | grep " inet " | awk '{print $2}')
   default_route=$(ip -4 route list 0/0 dev $eth | cut -d\  -f3)
-
-  [[ -z "$ip_addr" ]] && echo $eth No ip && exit 11 
-  [[ $(echo $ip_addr) =~ " " ]] && echo $eth has multiple ip && exit 12
-  [[ -z "$default_route" ]] && echo $eth No default route && exit 13
-  [[ $(echo $default_route) =~ " " ]] && echo $eth has multiple default route && exit 14
 
   ip addr del $ip_addr dev $eth
   ip link add $br type bridge
@@ -21,3 +17,4 @@ fi
 
 ip link set $1 master $br
 ip link set $1 up
+

@@ -3,11 +3,12 @@
 smp=" -smp 2,sockets=1,cores=2 "
 mem=" -m 2g "
 net=bridge
-printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff )) $(( $RANDOM & 0xff)) $(( $RANDOM & 0xff ))
+printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
 export eth=enp5s0
 args=()
 
-while test $# -gt 0 ; do
+while test $# -gt 0
+do
   case $1 in
   -smp)
     smp=""
@@ -38,6 +39,5 @@ while test $# -gt 0 ; do
   shift
 done
 
-[ -d /sys/class/net/"$eth" ] || echo Please check ethernet interface config; exit 1
-
 qemu-system-x86_64 -machine q35,accel=kvm $smp $mem -netdev tap,id=tap0,script=/etc/qemu-wrapper-ifup-$net -device virtio-net,netdev=tap0,mac="$mac_addr" "${args[@]}"
+
