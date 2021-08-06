@@ -1,7 +1,7 @@
 #!/bin/bash
 
-smp=" -smp 2,sockets=1,cores=2 "
-mem=" -m 2g "
+smp=" -smp 4,sockets=1,cores=4 "
+mem=" -m 4g "
 net=bridge
 printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
 export eth=enp5s0
@@ -31,6 +31,16 @@ do
     ;;
   -nat)
     net=nat
+    ;;
+  -rvd)
+    args+=("-drive")
+    args+=("file=$2,format=raw,if=virtio")
+    shift
+    ;;
+  -qvd)
+    args+=("-drive")
+    args+=("file=$2,format=qcow2,if=virtio")
+    shift
     ;;
   *)
     args+=("$1")
