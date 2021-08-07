@@ -3,13 +3,25 @@
 smp=" -smp 4,sockets=1,cores=4 "
 mem=" -m 4g "
 net=bridge
-printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
+printf -v mac '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
 export eth=enp5s0
 args=()
 
-while test $# -gt 0
-do
+mkdir -p /var/run/qemu-wrapper/
+mac_history=/var/run/qemu-wrapper/mac_address
+touch $mac_history
+
+while test $# -gt 0; do
   case $1 in
+  -name)
+    mac_addr=$(grep "$2" $mac_history | cut -d "=" -f 2)
+    if [ -z "$mac_addr" ]; then
+      echo "$2"="$mac" >> $mac_history
+    else
+      mac="$mac_addr"
+    fi
+    args+=("$1")
+    ;;
   -smp)
     smp=""
     args+=("$1")
@@ -17,10 +29,6 @@ do
   -m)
     mem=""
     args+=("$1")
-    ;;
-  -mac)
-    mac_addr="$2"
-    shift
     ;;
   -eth)
     eth="$2"
@@ -49,5 +57,5 @@ do
   shift
 done
 
-qemu-system-x86_64 -machine q35,accel=kvm $smp $mem -netdev tap,id=tap0,script=/etc/qemu-wrapper-ifup-$net -device virtio-net,netdev=tap0,mac="$mac_addr" "${args[@]}"
+qemu-system-x86_64 -machine q35,accel=kvm $smp $mem -netdev tap,id=tap0,script=/etc/qemu-wrapper-ifup-$net -device virtio-net,netdev=tap0,mac="$mac" "${args[@]}"
 
