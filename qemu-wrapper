@@ -41,13 +41,15 @@ while test $# -gt 0; do
     net=nat
     ;;
   -rvd)
-    args+=("-drive")
-    args+=("file=$2,format=raw,if=virtio")
+    args+=("-drive file=$2,format=raw,if=virtio")
     shift
     ;;
   -qvd)
-    args+=("-drive")
-    args+=("file=$2,format=qcow2,if=virtio")
+    args+=("-drive file=$2,format=qcow2,if=virtio")
+    shift
+    ;;
+  -spi)
+    args+=("-rtc base=localtime,driftfix=slew -vga qxl -spice port=$2,addr=0.0.0.0,disable-ticketing -device virtio-serial-pci,id=virtio-serial0 -chardev spicevmc,id=charchannel0,name=vdagent -device virtserialport,bus=virtio-serial0.0,chardev=charchannel0,name=com.redhat.spice.0")
     shift
     ;;
   *)
@@ -57,5 +59,5 @@ while test $# -gt 0; do
   shift
 done
 
-qemu-system-x86_64 -machine q35,accel=kvm $smp $mem -netdev tap,id=tap0,script=/etc/qemu-wrapper-ifup-$net -device virtio-net,netdev=tap0,mac="$mac" "${args[@]}"
+qemu-system-x86_64 -machine q35,accel=kvm $smp $mem -netdev tap,id=tap0,script=/etc/qemu-wrapper-ifup-$net -device virtio-net,netdev=tap0,mac="$mac" ${args[@]}
 
