@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [[ "$nettype" = "bridge" ]]; then
+  br=eth-br
+  if [ ! -e /sys/class/net/$br/bridge ]
+  then
+    ip_addr=$(ip -4 addr show $eth | grep " inet " | awk '{print $2}')
+    default_route=$(ip -4 route list 0/0 dev $eth | cut -d\  -f3)
+  
+    ip addr del $ip_addr dev $eth
+    ip link add $br type bridge
+    ip link set $eth master $br
+    ip addr add $ip_addr dev $br
+    ip link set $br up
+    ip route add default via $default_route dev $br
+  fi
+else
+  br=nat-br
+  network=192.168.53.1/24
+  if [ ! -e /sys/class/net/$br/bridge ] ; then
+    ip link add name $br type bridge
+    ip addr add $network dev $br
+    ip link set $br up
+    iptables -t nat -I POSTROUTING -s $network -j MASQUERADE
+    echo 1 > /proc/sys/net/ipv4/ip_forward
+  fi  
+fi
+
+ip link set $1 master $br
+ip link set $1 up

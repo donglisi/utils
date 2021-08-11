@@ -2,7 +2,7 @@
 
 smp="-smp 4,sockets=1,cores=4"
 mem="-m 4g"
-net=bridge
+export nettype=bridge
 printf -v mac '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
 export eth=enp5s0
 args=()
@@ -35,10 +35,10 @@ while test $# -gt 0; do
     shift
     ;;
   -br)
-    net=bridge
+    nettype=bridge
     ;;
   -nat)
-    net=nat
+    nettype=nat
     ;;
   -rvd)
     args+=("-drive file=$2,format=raw,if=virtio")
@@ -59,5 +59,5 @@ while test $# -gt 0; do
   shift
 done
 
-qemu-system-x86_64 -machine q35,accel=kvm -rtc base=localtime -cpu host $smp $mem -netdev tap,id=tap0,script=/etc/qemu-wrapper-ifup-$net -device virtio-net,netdev=tap0,mac="$mac" ${args[@]}
+qemu-system-x86_64 ${args[@]} $smp $mem -machine q35,accel=kvm -cpu host -rtc base=localtime -netdev tap,id=tap0 -device e1000e,netdev=tap0,mac="$mac" -monitor telnet:0.0.0.0:0,server,nowait
 
