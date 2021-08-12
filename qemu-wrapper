@@ -44,6 +44,10 @@ while test $# -gt 0; do
     args+=("-drive file=$2,format=raw,if=virtio")
     shift
     ;;
+  -rsd)
+    args+=("-drive file=$2,format=raw")
+    shift
+    ;;
   -qvd)
     args+=("-drive file=$2,format=qcow2,if=virtio")
     shift
