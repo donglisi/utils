@@ -53,7 +53,8 @@ while test $# -gt 0; do
     shift
     ;;
   -spi)
-    args+=("-vga qxl -spice port=$2,addr=0.0.0.0,disable-ticketing -device virtio-serial-pci,id=virtio-serial0 -chardev spicevmc,id=charchannel0,name=vdagent -device virtserialport,bus=virtio-serial0.0,chardev=charchannel0,name=com.redhat.spice.0")
+    args+=("-vga qxl -spice port=$2,addr=0.0.0.0,disable-ticketing -device virtio-serial-pci,id=virtio-serial0 -chardev spicevmc,id=charchannel0,name=vdagent -device virtserialport,bus=virtio-serial0.0,chardev=charchannel0,name=com.redhat.spice.0 -device qemu-xhci,id=usb -chardev spicevmc,id=charredir0,name=usbredir -device usb-redir,chardev=charredir0,bus=usb.0,port=1 -chardev spicevmc,id=charredir1,name=usbredir -device usb-redir,chardev=charredir1,bus=usb.0,port=2")
+    usb=",usb=off"
     shift
     ;;
   *)
@@ -63,5 +64,5 @@ while test $# -gt 0; do
   shift
 done
 
-qemu-system-x86_64 ${args[@]} $smp $mem -machine q35,accel=kvm -cpu host -rtc base=localtime -netdev tap,id=tap0 -device e1000e,netdev=tap0,mac="$mac" -monitor telnet:0.0.0.0:0,server,nowait
+qemu-system-x86_64 ${args[@]} $smp $mem -machine q35,accel=kvm"$usb" -cpu host -rtc base=localtime -netdev tap,id=tap0 -device virtio-net-pci,netdev=tap0,mac="$mac" -monitor telnet:0.0.0.0:0,server,nowait
 
