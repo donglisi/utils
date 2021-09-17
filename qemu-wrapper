@@ -14,7 +14,7 @@ touch $mac_history
 while test $# -gt 0; do
   case $1 in
   -name)
-    mac_addr=$(grep "$2" $mac_history | cut -d "=" -f 2)
+    mac_addr=$(grep "^$2=" $mac_history | cut -d "=" -f 2)
     if [ -z "$mac_addr" ]; then
       echo "$2"="$mac" >> $mac_history
     else
