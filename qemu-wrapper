@@ -31,7 +31,7 @@ while test $# -gt 0; do
     args+=("$1")
     ;;
   -nat)
-    br=nat-br
+    br=virbr0
     ;;
   -enet)
     net=e1000e
