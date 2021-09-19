@@ -69,5 +69,8 @@ while test $# -gt 0; do
   shift
 done
 
-qemu-system-x86_64 $smp $mem -machine q35,accel=kvm"$usb" -cpu host -netdev tap,id=tap0 -device "$net",id=eth,netdev=tap0,mac="$mac" -rtc base=localtime -monitor telnet:0.0.0.0:0,server,nowait ${args[@]} 
+two_free_port=$(comm -23 <(seq 49152 65535 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 2)
+telnet=$(echo $two_free_port | cut -d " " -f 1)
+tcp=$(echo $two_free_port | cut -d " " -f 2)
 
+qemu-system-x86_64 $smp $mem -machine q35,accel=kvm"$usb" -cpu host -netdev tap,id=tap0 -device "$net",id=eth,netdev=tap0,mac="$mac" -rtc base=localtime -monitor telnet:0.0.0.0:"$telnet",server,nowait -monitor tcp:0.0.0.0:"$tcp",server,nowait ${args[@]} 
