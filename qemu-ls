@@ -40,6 +40,7 @@ for line in subprocess.getoutput("pgrep qemu-system-x86 -a").splitlines():
                 if (i % 2) == 0:
                     net = []
                     net.append(netstr.split(":")[0])
+                    net.append(netstr.split("=")[-1])
                     nets.append(net)
                 else:
                     nets[-1].append(re.findall("ifname=tap\d+", netstr)[0].split("=")[1])
@@ -54,7 +55,7 @@ for line in subprocess.getoutput("pgrep qemu-system-x86 -a").splitlines():
 
     vncs = re.findall('-vnc :\d+', line)
     if vncs:
-        vnc = int(vncs[0].split(":")[1]) + 5900
+        vnc = vncs[0].split(":")[1]
     else:
         vnc = -1
 
