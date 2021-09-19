@@ -2,7 +2,13 @@
 
 import re 
 import subprocess
+import argparse
 from tabulate import tabulate
+
+parser = argparse.ArgumentParser(description='Optional app description')
+parser.add_argument('-n', action='store_true', help='A boolean switch')
+parser.add_argument('-b', action='store_true', help='A boolean switch')
+args = parser.parse_args()
 
 vms = []
 for line in subprocess.getoutput("pgrep qemu-system-x86 -a").splitlines():
@@ -28,18 +34,20 @@ for line in subprocess.getoutput("pgrep qemu-system-x86 -a").splitlines():
     if tcps:
         tcp = tcps[0].split(":")[2]
 
-        i = 0
-        for netstr in subprocess.getoutput("echo info network |nc -N 127.0.0.1 " + tcp + " | grep -v ^\(qemu\) | grep -v \"^QEMU \"").splitlines():
-            if (i % 2) == 0:
-                net = []
-                net.append(netstr.split(":")[0])
-                nets.append(net)
-            else:
-                nets[-1].append(re.findall("ifname=tap\d+", netstr)[0].split("=")[1])
-            i = i + 1
+        if args.n:
+            i = 0
+            for netstr in subprocess.getoutput("echo info network |nc -N 127.0.0.1 " + tcp + " | grep -v ^\(qemu\) | grep -v \"^QEMU \"").splitlines():
+                if (i % 2) == 0:
+                    net = []
+                    net.append(netstr.split(":")[0])
+                    nets.append(net)
+                else:
+                    nets[-1].append(re.findall("ifname=tap\d+", netstr)[0].split("=")[1])
+                i = i + 1
 
-        for blk in subprocess.getoutput("echo info block |nc -N 127.0.0.1 " + tcp + " | grep -v ^\(qemu\) | grep -v \"^QEMU \" | sed '1i\\\\' | sed 's/\r//g' | sed -n '/^$/{n;p;}' | grep -o '/[^ \"]*'").splitlines():
-            blks.append(blk)
+        if args.b:
+            for blk in subprocess.getoutput("echo info block |nc -N 127.0.0.1 " + tcp + " | grep -v ^\(qemu\) | grep -v \"^QEMU \" | sed '1i\\\\' | sed 's/\r//g' | sed -n '/^$/{n;p;}' | grep -o '/[^ \"]*'").splitlines():
+                blks.append(blk)
 
     else:
         tcp = -1
@@ -62,9 +70,23 @@ for line in subprocess.getoutput("pgrep qemu-system-x86 -a").splitlines():
     vm.append(spi)
     vm.append(mon)
     vm.append(tcp)
-    vm.append(nets)
-    vm.append(blks)
+    if args.n:
+        vm.append(nets)
+    if args.b:
+        vm.append(blks)
 
     vms.append(vm)
 
-print(tabulate(vms, headers=["pid", "name" ,"vnc", "spi", "mon", "tcp", "nets", "blks"]))
+head = []
+head.append("pid")
+head.append("name")
+head.append("vnc")
+head.append("spi")
+head.append("mon")
+head.append("tcp")
+if args.n:
+    head.append("nets")
+if args.b:
+    head.append("blks")
+
+print(tabulate(vms, head))
