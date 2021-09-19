@@ -6,6 +6,7 @@ net=virtio-net-pci
 export br=eth-br
 printf -v mac '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
 args=()
+non=""
 
 mkdir -p /var/run/qemu-wrapper/
 mac_history=/var/run/qemu-wrapper/mac_address
@@ -36,16 +37,22 @@ while test $# -gt 0; do
   -enet)
     net=e1000e
     ;;
+  -non)
+    non=true
+    ;;
   -rvd)
-    args+=("-drive file="$(readlink -f $2)",format=raw,if=virtio")
+    args+=("-drive")
+    args+=("file=$(readlink -f "$2"),format=raw,if=virtio")
     shift
     ;;
   -rsd)
-    args+=("-drive file="$(readlink -f $2)",format=raw")
+    args+=("-drive")
+    args+=("file=$(readlink -f "$2"),format=raw")
     shift
     ;;
   -qvd)
-    args+=("-drive file="$(readlink -f $2)",format=qcow2,if=virtio")
+    args+=("-drive")
+    args+=("file=$(readlink -f "$2"),format=qcow2,if=virtio")
     shift
     ;;
   -spi)
@@ -73,4 +80,12 @@ two_free_port=$(comm -23 <(seq 49152 65535 | sort) <(ss -Htan | awk '{print $4}'
 telnet=$(echo $two_free_port | cut -d " " -f 1)
 tcp=$(echo $two_free_port | cut -d " " -f 2)
 
-qemu-system-x86_64 $smp $mem -machine q35,accel=kvm"$usb" -cpu host -netdev tap,id=tap0 -device "$net",id=eth,netdev=tap0,mac="$mac" -rtc base=localtime -monitor telnet:0.0.0.0:"$telnet",server,nowait -monitor tcp:0.0.0.0:"$tcp",server,nowait ${args[@]} 
+if [ -z "$non" ]; then
+  args+=("-netdev")
+  args+=("tap,id=tap0")
+  args+=("-device")
+  args+=("$net,id=eth,netdev=tap0,mac=$mac")
+fi
+
+qemu-system-x86_64 $smp $mem -machine q35,accel=kvm"$usb" -cpu host -rtc base=localtime -monitor telnet:0.0.0.0:"$telnet",server,nowait -monitor tcp:0.0.0.0:"$tcp",server,nowait "${args[@]}"
+
