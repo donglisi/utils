@@ -37,15 +37,15 @@ while test $# -gt 0; do
     net=e1000e
     ;;
   -rvd)
-    args+=("-drive file=$2,format=raw,if=virtio")
+    args+=("-drive file="$(readlink -f $2)",format=raw,if=virtio")
     shift
     ;;
   -rsd)
-    args+=("-drive file=$2,format=raw")
+    args+=("-drive file="$(readlink -f $2)",format=raw")
     shift
     ;;
   -qvd)
-    args+=("-drive file=$2,format=qcow2,if=virtio")
+    args+=("-drive file="$(readlink -f $2)",format=qcow2,if=virtio")
     shift
     ;;
   -spi)
