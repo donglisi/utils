@@ -31,8 +31,9 @@ while test $# -gt 0; do
     mem=""
     args+=("$1")
     ;;
-  -nat)
-    br=virbr0
+  -br)
+    br="$2"
+    shift
     ;;
   -enet)
     net=e1000e
