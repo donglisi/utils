@@ -47,7 +47,8 @@ for line in subprocess.getoutput("pgrep qemu-system-x86 -a").splitlines():
                 i = i + 1
 
         if args.b:
-            for blk in subprocess.getoutput("echo info block |nc -N 127.0.0.1 " + tcp + " | grep -v ^\(qemu\) | grep -v \"^QEMU \" | sed '1i\\\\' | sed 's/\r//g' | sed -n '/^$/{n;p;}' | grep -o '/[^ \"]*'").splitlines():
+            for blk in subprocess.getoutput("echo info block |nc -N 127.0.0.1 " + tcp + 
+                    " | grep -v ^\(qemu\) | grep -v \"^QEMU \" | sed '1i\\\\' | sed 's/\r//g' | sed -n '/^$/{n;p;}' | grep -o '/[^ \"]*'").splitlines():
                 blks.append(blk)
 
     else:
@@ -91,3 +92,4 @@ if args.b:
     head.append("blks")
 
 print(tabulate(vms, head))
+
