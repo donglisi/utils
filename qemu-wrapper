@@ -12,20 +12,15 @@ mkdir -p /var/run/qemu-wrapper/
 mac_history=/var/run/qemu-wrapper/mac_address
 touch $mac_history
 
-vms=($(qemu-ls | awk '{print $2}' | tail -n +3))
-
 while test $# -gt 0; do
   case $1 in
   -name)
-    [[ " ${vms[*]} " =~ " ${2} " ]] && exit 1
-
     mac_addr=$(grep "^$2=" $mac_history | cut -d "=" -f 2)
     if [ -z "$mac_addr" ]; then
       echo "$2"="$mac" >> $mac_history
     else
       mac="$mac_addr"
     fi
-
     args+=("$1")
     ;;
   -smp)
