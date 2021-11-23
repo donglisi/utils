@@ -1,12 +1,11 @@
 #!/bin/bash
 
-smp="-smp 4,sockets=1,cores=4"
-mem="-m 4g"
+export br=""
+smp="-smp 8,sockets=1,cores=8"
+mem="-m 8g"
 net=virtio-net-pci
-export br=eth-br
 printf -v mac '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
 args=()
-non=""
 
 mkdir -p /var/run/qemu-wrapper/
 mac_history=/var/run/qemu-wrapper/mac_address
@@ -38,9 +37,6 @@ while test $# -gt 0; do
   -enet)
     net=e1000e
     ;;
-  -non)
-    non=true
-    ;;
   -rvd)
     args+=("-drive")
     args+=("file=$(readlink -f "$2"),format=raw,if=virtio")
@@ -60,7 +56,7 @@ while test $# -gt 0; do
     args+=("-vga")
     args+=("qxl")
     args+=("-spice")
-    args+=("port=$2,addr=0.0.0.0,disable-ticketing")
+    args+=("port=$2,addr=0.0.0.0,disable-ticketing=on")
     args+=("-device")
     args+=("virtio-serial-pci,id=virtio-serial0")
     args+=("-chardev")
@@ -77,7 +73,6 @@ while test $# -gt 0; do
     args+=("spicevmc,id=charredir1,name=usbredir")
     args+=("-device")
     args+=("usb-redir,chardev=charredir1,id=redir1,bus=usb.0,port=2")
-    usb=",usb=off"
     shift
     ;;
   *)
@@ -87,18 +82,22 @@ while test $# -gt 0; do
   shift
 done
 
-two_free_port=$(comm -23 <(seq 49152 65535 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 2)
-telnet=$(echo $two_free_port | cut -d " " -f 1)
-tcp=$(echo $two_free_port | cut -d " " -f 2)
-
-if [ -z "$non" ]; then
+if [ -n "$br" ]; then
   args+=("-netdev")
   args+=("tap,id=tap0")
   args+=("-device")
   args+=("$net,id=eth,netdev=tap0,mac=$mac")
-else
-  args+=("-nic")
-  args+=("none")
 fi
 
-qemu-system-x86_64 $smp $mem -machine q35,accel=kvm"$usb" -cpu host -rtc base=localtime -monitor telnet:0.0.0.0:"$telnet",server,nowait -monitor tcp:0.0.0.0:"$tcp",server,nowait "${args[@]}"
+free_port=$(comm -23 <(seq 49152 65535 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1)
+
+qemu-system-x86_64 \
+-machine q35,accel=kvm \
+-cpu host \
+$smp \
+$mem \
+-rtc base=localtime \
+-object rng-random,id=objrng0,filename=/dev/urandom \
+-device virtio-rng-pci,rng=objrng0,id=rng0 \
+-monitor telnet:0.0.0.0:$free_port,server,nowait "${args[@]}"
+
