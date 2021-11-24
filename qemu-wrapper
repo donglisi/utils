@@ -7,16 +7,15 @@ net=virtio-net-pci
 printf -v mac '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
 args=()
 
-mkdir -p /var/run/qemu-wrapper/
-mac_history=/var/run/qemu-wrapper/mac_address
-touch $mac_history
+mac_addrs=/usr/local/etc/vm_mac_addrs
+touch $mac_addrs
 
 while test $# -gt 0; do
   case $1 in
   -name)
-    mac_addr=$(grep "^$2=" $mac_history | cut -d "=" -f 2)
+    mac_addr=$(grep "^$2=" $mac_addrs | cut -d "=" -f 2)
     if [ -z "$mac_addr" ]; then
-      echo "$2"="$mac" >> $mac_history
+      echo "$2"="$mac" >> $mac_addrs
     else
       mac="$mac_addr"
     fi
