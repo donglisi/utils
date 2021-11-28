@@ -1,18 +1,17 @@
 #!/bin/bash
 
 export br=""
-smp="-smp 8,sockets=1,cores=8"
-mem="-m 8g"
+smp="-smp 4,sockets=1,cores=4"
+mem="-m 4g"
 net=virtio-net-pci
 printf -v mac '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
 args=()
 
-mac_addrs=/usr/local/etc/vm_mac_addrs
-touch $mac_addrs
-
 while test $# -gt 0; do
   case $1 in
   -name)
+    mac_addrs=/usr/local/etc/vm_mac_addrs
+    touch $mac_addrs
     mac_addr=$(grep "^$2=" $mac_addrs | cut -d "=" -f 2)
     if [ -z "$mac_addr" ]; then
       echo "$2"="$mac" >> $mac_addrs
