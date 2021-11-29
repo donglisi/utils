@@ -51,8 +51,6 @@ while test $# -gt 0; do
     shift
     ;;
   -spi)
-    args+=("-vga")
-    args+=("qxl")
     args+=("-spice")
     args+=("port=$2,addr=0.0.0.0,disable-ticketing=on")
     args+=("-device")
