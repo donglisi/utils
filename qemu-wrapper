@@ -10,7 +10,7 @@ args=()
 while test $# -gt 0; do
   case $1 in
   -name)
-    mac_addrs=/usr/local/etc/vm_mac_addrs
+    mac_addrs=~/.config/qemu-wrapper_mac_addrs
     touch $mac_addrs
     mac_addr=$(grep "^$2=" $mac_addrs | cut -d "=" -f 2)
     if [ -z "$mac_addr" ]; then
@@ -80,9 +80,9 @@ done
 
 if [ -n "$br" ]; then
   args+=("-netdev")
-  args+=("tap,id=tap0")
+  args+=("bridge,id=net0,br=$br")
   args+=("-device")
-  args+=("$net,id=eth,netdev=tap0,mac=$mac")
+  args+=("$net,id=eth,netdev=net0,mac=$mac")
 fi
 
 free_port=$(comm -23 <(seq 49152 65535 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1)
@@ -96,4 +96,3 @@ $mem \
 -object rng-random,id=objrng0,filename=/dev/urandom \
 -device virtio-rng-pci,rng=objrng0,id=rng0 \
 -monitor telnet:0.0.0.0:$free_port,server,nowait "${args[@]}"
-

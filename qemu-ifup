@@ -1,5 +1,0 @@
-#!/bin/bash
-
-ip link set $1 master $br
-ip link set $1 up
-
