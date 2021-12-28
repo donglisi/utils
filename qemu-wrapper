@@ -1,22 +1,20 @@
 #!/bin/bash
 
-export br=""
 smp="-smp 4,sockets=1,cores=4"
 mem="-m 4g"
-net=virtio-net-pci
-printf -v mac '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
+net_model=virtio-net-pci
 args=()
 
 while test $# -gt 0; do
   case $1 in
   -name)
-    mac_addrs=~/.config/qemu-wrapper_mac_addrs
-    touch $mac_addrs
-    mac_addr=$(grep "^$2=" $mac_addrs | cut -d "=" -f 2)
+    mkdir -p ~/.config
+    mac_addr_list=~/.config/qemu-wrapper_mac_addrs
+    touch $mac_addr_list
+    mac_addr=$(grep "^$2=" $mac_addr_list | cut -d "=" -f 2)
     if [ -z "$mac_addr" ]; then
-      echo "$2"="$mac" >> $mac_addrs
-    else
-      mac="$mac_addr"
+      printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
+      echo "$2"="$mac_addr" >> $mac_addr_list
     fi
     args+=("$1")
     ;;
@@ -33,7 +31,7 @@ while test $# -gt 0; do
     shift
     ;;
   -enet)
-    net=e1000e
+    net_model=e1000e
     ;;
   -rvd)
     args+=("-drive")
@@ -79,10 +77,12 @@ while test $# -gt 0; do
 done
 
 if [ -n "$br" ]; then
-  args+=("-netdev")
-  args+=("bridge,id=net0,br=$br")
-  args+=("-device")
-  args+=("$net,id=eth,netdev=net0,mac=$mac")
+  args+=("-nic")
+  if [ -z "$mac_addr" ]; then
+    args+=("bridge,br=$br,model=$net_model")
+  else
+    args+=("bridge,br=$br,model=$net_model,mac=$mac_addr")
+  fi
 fi
 
 free_port=$(comm -23 <(seq 49152 65535 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1)
