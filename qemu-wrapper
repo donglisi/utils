@@ -87,7 +87,7 @@ fi
 
 free_port=$(comm -23 <(seq 49152 65535 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1)
 
-qemu-system-x86_64 \
+exec qemu-system-x86_64 \
 -machine q35,accel=kvm \
 -cpu host \
 $smp \
