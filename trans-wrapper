@@ -1,0 +1,39 @@
+#!/bin/bash
+
+export https_proxy=http://192.168.1.6:3128
+
+key=/usr/local/share/trans/key
+val=/usr/local/share/trans/value
+touch $key $val
+
+str="$*"
+str=$(echo -n "$str" | perl -0pe 's/- *\n *//g')
+str=$(echo -n "$str" | tr '\n' ' ')
+str=$(echo -n "$str" | sed 's/ \+/ /g')
+
+echo "$str" | grep "^[\"(*]*[a-zA-Z]\+[\".,;:)]*$" > /dev/null
+if [ $? -eq 0 ]; then
+  str=${str//[\".,;*:()]/}
+else
+  echo "$str"
+  echo
+fi
+
+num=$(grep -ni "^$str$" $key | cut -f1 -d: | head -1)
+if [ -z $num ]; then
+  echo "$str" | grep "^[a-zA-Z]\+$" > /dev/null
+  if [ $? -eq 0 ]; then
+    ret=$(trans -no-ansi -show-prompt-message N -show-languages N -show-original-phonetics N -show-translation-phonetics N -show-alternatives N -s en :zh "$str" 2> /dev/null)
+  else
+    ret=$(trans -no-ansi -show-prompt-message N -s en :zh -b "$str" 2> /dev/null)
+  fi
+  if [ $? -eq 0 ]; then
+    echo "$str" >> $key
+    echo "$ret" | tr '\n' '\0' >> $val
+    echo >> $val
+  fi
+else
+  ret=$(sed -n ${num}p $val | tr '\0' '\n')
+fi
+
+echo "$ret"
