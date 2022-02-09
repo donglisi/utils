@@ -5,6 +5,7 @@ cpu="-cpu host"
 smp="-smp 4,sockets=1,cores=4"
 mem="-m 4g"
 net_model=virtio-net-pci
+printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
 args=()
 
 while test $# -gt 0; do
@@ -13,10 +14,11 @@ while test $# -gt 0; do
     mkdir -p ~/.config
     mac_addr_list=~/.config/qemu-wrapper_mac_addrs
     touch $mac_addr_list
-    mac_addr=$(grep "^$2=" $mac_addr_list | cut -d "=" -f 2)
-    if [ -z "$mac_addr" ]; then
-      printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
+    mac_addr_orig=$(grep "^$2=" $mac_addr_list | cut -d "=" -f 2)
+    if [ -z "$mac_addr_orig" ]; then
       echo "$2"="$mac_addr" >> $mac_addr_list
+    else
+      mac_addr=$mac_addr_orig
     fi
     args+=("$1")
     ;;
@@ -88,11 +90,7 @@ done
 
 if [ -n "$br" ]; then
   args+=("-nic")
-  if [ -z "$mac_addr" ]; then
-    args+=("bridge,br=$br,model=$net_model")
-  else
-    args+=("bridge,br=$br,model=$net_model,mac=$mac_addr")
-  fi
+  args+=("bridge,br=$br,model=$net_model,mac=$mac_addr")
 fi
 
 free_port=$(comm -23 <(seq 49152 65535 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1)
