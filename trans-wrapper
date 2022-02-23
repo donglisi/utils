@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# export https_proxy=http://127.0.0.1:7890
-# export http_proxy=http://127.0.0.1:7890
-
 key=/usr/local/share/trans/key
 val=/usr/local/share/trans/value
 touch $key $val
@@ -14,27 +11,27 @@ str=$(echo -n "$str" | sed 's/\t\+/ /g' | sed 's/ \+/ /g' | sed 's/^ //' | sed '
 
 echo "$str" | grep "^[\"(*]*[a-zA-Z]\+[\".,;:)]*$" > /dev/null
 if [ $? -eq 0 ]; then
-  str=${str//[\".,;*:()]/}
+	str=${str//[\".,;*:()]/}
 else
-  echo "$str"
-  echo
+	echo "$str"
+	echo
 fi
 
 num=$(grep -ni "^$str$" $key | cut -f1 -d: | head -1)
 if [ -z $num ]; then
-  echo "$str" | grep "^[a-zA-Z]\+$" > /dev/null
-  if [ $? -eq 0 ]; then
-    ret=$(trans -no-ansi -show-prompt-message N -show-languages N -show-original-phonetics N -show-translation-phonetics N -show-alternatives N -s en :zh "$str" 2> /dev/null)
-  else
-    ret=$(trans -no-ansi -show-prompt-message N -s en :zh -b "$str" 2> /dev/null)
-  fi
-  if [ $? -eq 0 ]; then
-    echo "$str" >> $key
-    echo "$ret" | tr '\n' '\0' >> $val
-    echo >> $val
-  fi
+	echo "$str" | grep "^[a-zA-Z]\+$" > /dev/null
+	if [ $? -eq 0 ]; then
+		ret=$(trans -no-ansi -show-prompt-message N -show-languages N -show-original-phonetics N -show-translation-phonetics N -show-alternatives N -s en :zh "$str" 2> /dev/null)
+	else
+		ret=$(trans -no-ansi -show-prompt-message N -s en :zh -b "$str" 2> /dev/null)
+	fi
+	if [ $? -eq 0 ]; then
+		echo "$str" >> $key
+		echo "$ret" | tr '\n' '\0' >> $val
+		echo >> $val
+	fi
 else
-  ret=$(sed -n ${num}p $val | tr '\0' '\n')
+	ret=$(sed -n ${num}p $val | tr '\0' '\n')
 fi
 
 echo "$ret"
