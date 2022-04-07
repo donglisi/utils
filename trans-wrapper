@@ -20,7 +20,7 @@ else
 	echo
 fi
 
-num=$(grep -niFx "$str" $key | cut -f1 -d: | head -1)
+num=$(grep -niFx -- "$str" $key | cut -f1 -d: | head -1)
 if [ -z $num ]; then
 	echo "$str" | grep "^[a-zA-Z]\+$" > /dev/null
 	if [ $? -eq 0 ]; then
