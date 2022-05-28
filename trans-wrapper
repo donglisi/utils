@@ -18,11 +18,12 @@ fi
 str=$(echo -n "$str" | sed 's/^\t* \* //')
 str=$(echo -n "$str" | sed 's/^\t*# //')
 str=$(echo -n "$str" | perl -0pe 's/- *\n *//g')
+str=$(echo -n "$str" | perl -0pe 's/‐ *\n *//g')
 str=$(echo -n "$str" | tr '\n' ' '| sed 's/\t\+/ /g' | sed 's/ \+/ /g' | sed 's/^ //' | sed 's/ $//')
 
-echo "$str" | grep "^[\"(*“]*[a-zA-Z]\+[\".,;:)”]*$" > /dev/null
+echo "$str" | grep "^[\"(*“]*[a-zA-Z]\+[\".,;:)”?]*$" > /dev/null
 if [ $? -eq 0 ]; then
-	str=${str//[\".,;*:()“”]/}
+	str=${str//[\".,;*:()“”?]/}
 else
 	echo "$str"
 	echo
@@ -32,9 +33,9 @@ num=$(grep -niFx -- "$str" $key | cut -f1 -d: | head -1)
 if [ -z $num ]; then
 	echo "$str" | grep "^[a-zA-Z]\+$" > /dev/null
 	if [ $? -eq 0 ]; then
-		ret=$($trans_word "$str")
+		ret=$($trans_word "$str" 2> /dev/null)
 	else
-		ret=$($trans_line "$str")
+		ret=$($trans_line "$str" 2> /dev/null)
 	fi
 	if [ $? -eq 0 ]; then
 		echo "$str" >> $key
@@ -45,5 +46,5 @@ else
 	ret=$(sed -n ${num}p $val | tr '\0' '\n')
 fi
 
-echo "$ret" | sed 's/u003d/=/g'
+echo "$ret" | sed 's/u003d/=/g' | head -n 40
 read
