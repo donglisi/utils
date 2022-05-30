@@ -15,10 +15,9 @@ if [ -z "$1" ]; then
 else
 	str="$1"
 fi
-str=$(echo -n "$str" | sed 's/^\t* \* //')
-str=$(echo -n "$str" | sed 's/^\t*# //')
-str=$(echo -n "$str" | perl -0pe 's/- *\n *//g')
-str=$(echo -n "$str" | perl -0pe 's/‐ *\n *//g')
+str=$(echo -n "$str" | sed 's/^\s*\*\s*//')
+str=$(echo -n "$str" | sed 's/^\s*#*\s*//')
+str=$(echo -n "$str" | perl -0pe 's/(‐|-)\s*\n\s*//g')
 str=$(echo -n "$str" | tr '\n' ' '| sed 's/\t\+/ /g' | sed 's/ \+/ /g' | sed 's/^ //' | sed 's/ $//')
 
 echo "$str" | grep "^[\"(*“]*[a-zA-Z]\+[\".,;:)”?]*$" > /dev/null
