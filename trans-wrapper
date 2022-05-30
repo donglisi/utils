@@ -20,7 +20,7 @@ str=$(echo -n "$str" | sed 's/^\s*#*\s*//')
 str=$(echo -n "$str" | perl -0pe 's/(‐|-)\s*\n\s*//g')
 str=$(echo -n "$str" | tr '\n' ' '| sed 's/\t\+/ /g' | sed 's/ \+/ /g' | sed 's/^ //' | sed 's/ $//')
 
-echo "$str" | grep "^[\"(*“]*[a-zA-Z]\+[\".,;:)”?]*$" > /dev/null
+echo "$str" | grep -x "[\"(*“]*[a-zA-Z]\+[\".,;:)”?]*" > /dev/null
 if [ $? -eq 0 ]; then
 	str=${str//[\".,;*:()“”?]/}
 else
