@@ -1,0 +1,45 @@
+#!/bin/bash
+
+global=/usr/bin/global_
+exec 3>&1
+flag=0
+args=()
+
+while test $# -gt 0; do
+	case $1 in
+	-all)
+		flag=1
+		;;
+	*)
+		args+=("$1")
+		;;
+	esac
+	shift
+done
+
+count=0
+countr()
+{
+	r=$(echo $1 | grep -o "[0-9]\+ ")
+	if [ -n "$r" ]
+	then
+		count=$((count + r))
+	fi
+}
+
+if [ $flag -eq 1 ]
+then
+	countr "$($global -d "${args[@]}" 2>&1 1>&3)"
+	countr "$($global -r "${args[@]}" 2>&1 1>&3)"
+	countr "$($global -s "${args[@]}" 2>&1 1>&3)"
+	if [ $count -eq 0 ]
+	then
+		echo object not found
+	else
+		echo $count objects located
+	fi
+else
+	$global "${args[@]}"
+fi
+
+exec 3>&-
