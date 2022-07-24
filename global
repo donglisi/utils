@@ -26,25 +26,19 @@ counter()
 	fi
 }
 
-out()
-{
+if [ $flag -eq 1 ]
+then
 	exec 3>&1
-	if [ $flag -eq 1 ]
+	counter "$($global -d "${args[@]}" 2>&1 1>&3)"
+	counter "$($global -r "${args[@]}" 2>&1 1>&3)"
+	counter "$($global -s "${args[@]}" 2>&1 1>&3)"
+	if [ $count -eq 0 ]
 	then
-		counter "$($global -d "${args[@]}" 2>&1 1>&3)"
-		counter "$($global -r "${args[@]}" 2>&1 1>&3)"
-		counter "$($global -s "${args[@]}" 2>&1 1>&3)"
-		if [ $count -eq 0 ]
-		then
-			echo object not found
-		else
-			echo $count objects located
-		fi
+		echo object not found
 	else
-		str=$($global "${args[@]}" 2>&1 1>&3)
-		echo $str
+		echo $count objects located
 	fi
 	exec 3>&-
-}
-
-out | sed 's/\t/  /g'
+else
+	$global "${args[@]}"
+fi
