@@ -16,6 +16,7 @@ else
 fi
 str=$(echo -n "$str" | sed 's/^\s*\*\s*//')
 str=$(echo -n "$str" | sed 's/^\s*#*\s*//')
+str=$(echo -n "$str" | sed 's/^\s*\/\/\s*//')
 str=$(echo -n "$str" | sed 's/^>*//')
 str=$(echo -n "$str" | sed 's/^\s*;;//')
 str=$(echo -n "$str" | perl -0pe 's/(‐|-)\s*\n\s*//g')
