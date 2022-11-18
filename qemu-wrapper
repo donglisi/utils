@@ -109,4 +109,5 @@ $mem \
 -rtc base=localtime \
 -object rng-random,id=objrng0,filename=/dev/urandom \
 -device virtio-rng-pci,rng=objrng0,id=rng0 \
+-device virtio-balloon-pci \
 -monitor telnet:0.0.0.0:$free_port,server,nowait "${args[@]}"
