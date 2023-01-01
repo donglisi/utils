@@ -1,0 +1,15 @@
+#!/bin/bash
+
+str=""
+err=/tmp/trans_err
+
+while :
+do
+	str=$(/usr/bin/trans "$@" 2> $err)
+	if [ ! -s $err ]
+	then
+		break
+	fi
+done
+
+echo "$str"
