@@ -1,6 +1,6 @@
 #!/bin/bash
 
-machine="-machine q35,accel=kvm"
+machine="-machine q35,accel=kvm,usb=off"
 cpu="-cpu host"
 smp="-smp 4,sockets=1,cores=4"
 mem="-m 4g"
@@ -68,7 +68,11 @@ while test $# -gt 0; do
 		;;
 	-spi)
 		args+=("-spice")
-		args+=("port=$2,addr=0.0.0.0,disable-ticketing=on")
+		args+=("port=5903,disable-ticketing=on")
+		args+=("-device")
+		args+=("virtio-vga")
+		args+=("-display")
+		args+=("gtk,gl=off,window-close=off")
 		args+=("-device")
 		args+=("virtio-serial-pci,id=virtio-serial0")
 		args+=("-chardev")
@@ -85,7 +89,6 @@ while test $# -gt 0; do
 		args+=("spicevmc,id=charredir1,name=usbredir")
 		args+=("-device")
 		args+=("usb-redir,chardev=charredir1,id=redir1,bus=usb.0,port=2")
-		shift
 		;;
 	*)
 		args+=("$1")
