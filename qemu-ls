@@ -5,35 +5,37 @@ import subprocess
 from tabulate import tabulate
 
 vms = []
-for line in subprocess.getoutput("pgrep qemu-system-x86 -a").splitlines():
+index = 0
+for line in subprocess.getoutput("pgrep qemu-system- -a").splitlines():
 	vm = []
 	
 	port=line.split()[0]
 
-	names = re.findall('-name [\w-]+', line)
+	names = re.findall('-name [\\w-]+', line)
 	if names:
 		name = names[0].split()[1]
 	else:
 		name = "NULL"
 
-	vncs = re.findall('-vnc :\d+', line)
+	vncs = re.findall('-vnc :\\d+', line)
 	if vncs:
 		vnc = vncs[0].split(":")[1]
 	else:
 		vnc = -1
 
-	spis = re.findall('-spice port=\d+', line)
+	spis = re.findall('-spice port=\\d+', line)
 	if spis:
 		spi = spis[0].split("=")[1]
 	else:
 		spi = -1
 	
-	mons = re.findall('-monitor telnet:0.0.0.0:\d+', line)
+	mons = re.findall('-serial mon:telnet:0.0.0.0:\\d+', line)
 	if mons:
-		mon = mons[0].split(":")[2]
+		mon = mons[0].split(":")[3]
 	else:
 		mon = -1
 
+	vm.append(index)
 	vm.append(port)
 	vm.append(name)
 	vm.append(vnc)
@@ -41,8 +43,10 @@ for line in subprocess.getoutput("pgrep qemu-system-x86 -a").splitlines():
 	vm.append(mon)
 
 	vms.append(vm)
+	index = index +1
 
 head = []
+head.append("index")
 head.append("pid")
 head.append("name")
 head.append("vnc")
