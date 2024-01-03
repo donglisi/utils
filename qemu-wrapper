@@ -5,6 +5,7 @@ cpu="-cpu host"
 smp="-smp 4,sockets=1,cores=4"
 mem="-m 4g"
 net_model=virtio-net-pci
+br=""
 printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
 args=()
 
@@ -68,11 +69,7 @@ while test $# -gt 0; do
 		;;
 	-spi)
 		args+=("-spice")
-		args+=("port=5903,disable-ticketing=on")
-		args+=("-device")
-		args+=("virtio-vga")
-		args+=("-display")
-		args+=("gtk,gl=off,window-close=off")
+		args+=("port=$2,disable-ticketing=on")
 		args+=("-device")
 		args+=("virtio-serial-pci,id=virtio-serial0")
 		args+=("-chardev")
@@ -89,6 +86,7 @@ while test $# -gt 0; do
 		args+=("spicevmc,id=charredir1,name=usbredir")
 		args+=("-device")
 		args+=("usb-redir,chardev=charredir1,id=redir1,bus=usb.0,port=2")
+		shift
 		;;
 	*)
 		args+=("$1")
@@ -112,5 +110,4 @@ $mem \
 -rtc base=localtime \
 -object rng-random,id=objrng0,filename=/dev/urandom \
 -device virtio-rng-pci,rng=objrng0,id=rng0 \
--device virtio-balloon-pci \
--monitor telnet:0.0.0.0:$free_port,server,nowait -serial mon:stdio "${args[@]}"
+-serial mon:telnet:0.0.0.0:$free_port,server,nowait "${args[@]}"
