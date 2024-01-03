@@ -6,7 +6,7 @@ from tabulate import tabulate
 
 vms = []
 index = 0
-for line in subprocess.getoutput("pgrep qemu-system- -a").splitlines():
+for line in subprocess.getoutput("pgrep -a qemu-system-").splitlines():
 	vm = []
 	
 	port=line.split()[0]
