@@ -1,25 +1,32 @@
 #!/bin/bash
 
-export https_proxy=http://192.168.1.2:7890
-
-key=/usr/local/share/trans/key
-val=/usr/local/share/trans/value
+mkdir -p ~/.local/share/trans
+key=~/.local/share/trans/key
+val=~/.local/share/trans/value
+text=~/.local/share/trans/text
 touch $key $val
 
-trans_word="trans -no-ansi -show-prompt-message N -show-languages N -show-original-phonetics N -show-translation-phonetics N -show-alternatives N -s en :zh"
-trans_line="trans -no-ansi -show-prompt-message N -s en :zh -b"
+trans_word="proxychains4 -q -f /etc/proxychains2.conf trans -no-ansi -show-prompt-message N -show-languages N -show-original-phonetics N -show-translation-phonetics N -show-alternatives N -s en :zh"
+trans_line="proxychains4 -q -f /etc/proxychains2.conf trans -no-ansi -show-prompt-message N -s en :zh -b"
 
+str=""
 if [ -z "$1" ]; then
-	str="$(xsel -o)"
+	if [ -s "$text" ]; then
+		str="$(cat $text)"
+	fi
+	str="$str
+$(xsel -o)"
 else
 	str="$1"
 fi
-str=$(echo -n "$str" | sed 's/^\s*\*\s*//')
-str=$(echo -n "$str" | sed 's/^\s*#*\s*//')
-str=$(echo -n "$str" | sed 's/^\s*\/\/\s*//')
+
+str=$(echo -n "$str" | sed 's/^\s*//')
+str=$(echo -n "$str" | sed 's/^\*//')
+str=$(echo -n "$str" | sed 's/^#*//')
+str=$(echo -n "$str" | sed 's/^\/\/\+//')
 str=$(echo -n "$str" | sed 's/^>*//')
-str=$(echo -n "$str" | sed 's/^\s*;;//')
-str=$(echo -n "$str" | perl -0pe 's/(‐|-)\s*\n\s*//g')
+str=$(echo -n "$str" | sed 's/^;;//')
+str=$(echo -n "$str" | perl -0pe 's/(‐|-)\s*\n\s*//g') 
 str=$(echo -n "$str" | tr '\n' ' ' | sed 's/\t\+/ /g' | sed 's/ \+/ /g' | sed 's/^ //' | sed 's/ $//')
 
 echo "$str" | grep -x "\[*[$\"(*“”]*[a-zA-Z]\+[\".,;:)”?/!]*\]*" > /dev/null
@@ -47,5 +54,6 @@ else
 	ret=$(sed -n ${num}p $val | tr '\0' '\n')
 fi
 
+rm -f $text
 echo "$ret" | sed 's/u003d/=/g' | head -n 40
 read
