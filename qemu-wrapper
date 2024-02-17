@@ -1,6 +1,6 @@
 #!/bin/bash
 
-machine="-machine q35,accel=kvm,usb=off"
+machine="-machine q35,accel=kvm"
 cpu="-cpu host"
 smp="-smp 4,sockets=1,cores=4"
 mem="-m 4g"
@@ -32,8 +32,8 @@ while test $# -gt 0; do
 		args+=("$1")
 		;;
 	-smp)
-		smp=""
-		args+=("$1")
+		smp="-smp $2,sockets=1,cores=$2"
+		shift
 		;;
 	-m)
 		mem=""
