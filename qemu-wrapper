@@ -1,26 +1,20 @@
 #!/bin/bash
 
+name=""
 machine="-machine q35,accel=kvm"
 cpu="-cpu host"
 smp="-smp 4,sockets=1,cores=4"
 mem="-m 4g"
 net_model=virtio-net-pci
-br=""
-printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
+mon=""
 args=()
+
+mkdir -p ~/.config/qemu-wrapper
 
 while test $# -gt 0; do
 	case $1 in
 	-name)
-		mkdir -p ~/.config
-		mac_addr_list=~/.config/qemu-wrapper_mac_addrs
-		touch $mac_addr_list
-		mac_addr_orig=$(grep "^$2=" $mac_addr_list | cut -d "=" -f 2)
-		if [ -z "$mac_addr_orig" ]; then
-			echo "$2"="$mac_addr" >> $mac_addr_list
-		else
-			mac_addr=$mac_addr_orig
-		fi
+		name="$2"
 		args+=("$1")
 		;;
 	-machine)
@@ -40,11 +34,23 @@ while test $# -gt 0; do
 		args+=("$1")
 		;;
 	-br)
+		mac_addr=$(grep "^$name=" ~/.config/qemu-wrapper/mac_addr-$2 | cut -d "=" -f 2)
+		if [ -z "$mac_addr" ]; then
+			printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
+		fi
+
+		args+=("-nic")
+		args+=("bridge,br=$2,model=$net_model,mac=$mac_addr")
 		br="$2"
 		shift
 		;;
 	-enet)
 		net_model=e1000e
+		;;
+	-daemonize)
+		free_port=$(comm -23 <(seq 49152 65535 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1)
+		mon="-serial mon:telnet:0.0.0.0:$free_port,server,nowait"
+		args+=("$1")
 		;;
 	-rvd)
 		args+=("-drive")
@@ -95,13 +101,6 @@ while test $# -gt 0; do
 	shift
 done
 
-if [ -n "$br" ]; then
-	args+=("-nic")
-	args+=("bridge,br=$br,model=$net_model,mac=$mac_addr")
-fi
-
-free_port=$(comm -23 <(seq 49152 65535 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1)
-
 exec qemu-system-x86_64 \
 $machine \
 $cpu \
@@ -110,4 +109,5 @@ $mem \
 -rtc base=localtime \
 -object rng-random,id=objrng0,filename=/dev/urandom \
 -device virtio-rng-pci,rng=objrng0,id=rng0 \
--serial mon:telnet:0.0.0.0:$free_port,server,nowait "${args[@]}"
+$mon \
+"${args[@]}"
