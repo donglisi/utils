@@ -101,13 +101,6 @@ while test $# -gt 0; do
 	shift
 done
 
-exec qemu-system-x86_64 \
-$machine \
-$cpu \
-$smp \
-$mem \
--rtc base=localtime \
--object rng-random,id=objrng0,filename=/dev/urandom \
--device virtio-rng-pci,rng=objrng0,id=rng0 \
-$mon \
+exec qemu-system-x86_64 $machine $cpu $smp $mem $mon -rtc base=localtime \
+-object rng-random,id=objrng0,filename=/dev/urandom -device virtio-rng-pci,rng=objrng0,id=rng0 \
 "${args[@]}"
