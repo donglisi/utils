@@ -9,7 +9,8 @@ net_model=virtio-net-pci
 mon=""
 args=()
 
-mkdir -p ~/.config/qemu-wrapper
+config_dir=~/.config/qemu-wrapper
+mkdir -p $config_dir
 
 while test $# -gt 0; do
 	case $1 in
@@ -34,9 +35,11 @@ while test $# -gt 0; do
 		args+=("$1")
 		;;
 	-br)
-		mac_addr=$(grep "^$name=" ~/.config/qemu-wrapper/mac_addr-$2 | cut -d "=" -f 2)
+		touch $config_dir/$2
+		mac_addr=$(grep "^$name=" $config_dir/$2 | cut -d "=" -f 2)
 		if [ -z "$mac_addr" ]; then
 			printf -v mac_addr '52:54:%02x:%02x:%02x:%02x' $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff)) $(($RANDOM & 0xff))
+			echo "$2"="$mac_addr" >> $config_dir/$2
 		fi
 
 		args+=("-nic")
